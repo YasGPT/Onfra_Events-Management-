@@ -21,4 +21,4 @@ Thumbs.db
 .idea/
 
 # backup of inner git repo (safe to delete after outer repo verified)
-git_backup/
+.git_backup/
