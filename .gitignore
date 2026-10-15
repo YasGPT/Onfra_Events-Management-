@@ -1,0 +1,24 @@
+# dependencies
+node_modules/
+
+# environment files with secrets
+.env
+.env.local
+.env.*.local
+
+# build output
+dist/
+build/
+
+# logs
+*.log
+npm-debug.log*
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# backup of inner git repo (safe to delete after outer repo verified)
+git_backup/
