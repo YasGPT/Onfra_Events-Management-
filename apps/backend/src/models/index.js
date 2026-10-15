@@ -3,6 +3,11 @@ const User = require('./User');
 const Event = require('./Event');
 const EventUser = require('./EventUser');
 const EventSetting = require('./EventSetting');
+const RefreshToken = require('./refreshToken');
+
+// 0. Refresh tokens (auth; rotation families documented in docs/auth-design.md)
+User.hasMany(RefreshToken, { foreignKey: 'user_id', as: 'refreshTokens' });
+RefreshToken.belongsTo(User, { foreignKey: 'user_id', as: 'user' });
 
 // 1. Organizer association (1 User organizes Many Events)
 User.hasMany(Event, {
@@ -73,4 +78,5 @@ module.exports = {
   Event,
   EventUser,
   EventSetting,
+  RefreshToken,
 };
