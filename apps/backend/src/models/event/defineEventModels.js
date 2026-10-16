@@ -1,6 +1,6 @@
 const { DataTypes } = require("sequelize");
 
-function defineEventModels(sequelize, schemaName = "event_template") {
+function defineEventModels(sequelize, schemaName = "public") {
     const opts = (tableName) => ({
         schema: schemaName,
         tableName,
@@ -15,14 +15,34 @@ function defineEventModels(sequelize, schemaName = "event_template") {
         updatedAt: "updated_at",
     });
 
+    // Helper for event_id foreign key referencing public.events(id)
+    const eventIdField = {
+        type: DataTypes.UUID,
+        allowNull: false,
+        references: {
+            model: { tableName: "events", schema: schemaName },
+            key: "id",
+        },
+        onDelete: "CASCADE",
+    };
+
     // 1. Media Assets
     const MediaAsset = sequelize.define(
-        `${schemaName}_MediaAsset`,
+        "MediaAsset",
         {
             id: {
                 type: DataTypes.UUID,
                 defaultValue: DataTypes.UUIDV4,
                 primaryKey: true,
+            },
+            event_id: {
+                type: DataTypes.UUID,
+                allowNull: true,
+                references: {
+                    model: { tableName: "events", schema: schemaName },
+                    key: "id",
+                },
+                onDelete: "CASCADE",
             },
             storage_key: {
                 type: DataTypes.TEXT,
@@ -60,110 +80,16 @@ function defineEventModels(sequelize, schemaName = "event_template") {
         opts("media_assets")
     );
 
-    // 2. Events
-    const Event = sequelize.define(
-        `${schemaName}_Event`,
-        {
-            id: {
-                type: DataTypes.UUID,
-                defaultValue: DataTypes.UUIDV4,
-                primaryKey: true,
-            },
-            name: {
-                type: DataTypes.STRING(200),
-                allowNull: false,
-            },
-            description: {
-                type: DataTypes.TEXT,
-                allowNull: true,
-            },
-            logo_asset_id: {
-                type: DataTypes.UUID,
-                allowNull: true,
-                references: {
-                    model: { tableName: "media_assets", schema: schemaName },
-                    key: "id",
-                },
-                onDelete: "SET NULL",
-            },
-            banner_asset_id: {
-                type: DataTypes.UUID,
-                allowNull: true,
-                references: {
-                    model: { tableName: "media_assets", schema: schemaName },
-                    key: "id",
-                },
-                onDelete: "SET NULL",
-            },
-            starts_at: {
-                type: DataTypes.DATE,
-                allowNull: true,
-            },
-            ends_at: {
-                type: DataTypes.DATE,
-                allowNull: true,
-            },
-            timezone: {
-                type: DataTypes.STRING(100),
-                defaultValue: "UTC",
-            },
-            venue_name: {
-                type: DataTypes.STRING(200),
-                allowNull: true,
-            },
-            venue_address: {
-                type: DataTypes.TEXT,
-                allowNull: true,
-            },
-            organizer_name: {
-                type: DataTypes.STRING(150),
-                allowNull: true,
-            },
-            organizer_email: {
-                type: DataTypes.STRING(255),
-                allowNull: true,
-            },
-            organizer_phone: {
-                type: DataTypes.STRING(30),
-                allowNull: true,
-            },
-            meeting_request_expiry_hours: {
-                type: DataTypes.INTEGER,
-                defaultValue: 24,
-            },
-            allow_personal_photo_uploads: {
-                type: DataTypes.BOOLEAN,
-                defaultValue: false,
-            },
-            status: {
-                type: DataTypes.STRING(20),
-                defaultValue: "draft",
-            },
-            published_at: {
-                type: DataTypes.DATE,
-                allowNull: true,
-            },
-            created_at: {
-                type: DataTypes.DATE,
-                defaultValue: DataTypes.NOW,
-            },
-            updated_at: {
-                type: DataTypes.DATE,
-                defaultValue: DataTypes.NOW,
-            },
-        },
-        optsWithTimestamps("events")
-    );
-
-    // 3. Event Settings
+    // 2. Event Settings
     const EventSetting = sequelize.define(
-        `${schemaName}_EventSetting`,
+        "EventSetting",
         {
             id: {
                 type: DataTypes.UUID,
                 defaultValue: DataTypes.UUIDV4,
                 primaryKey: true,
             },
+            event_id: eventIdField,
             setting_key: {
                 type: DataTypes.STRING(100),
                 allowNull: false,
@@ -184,15 +110,16 @@ function defineEventModels(sequelize, schemaName = "event_template") {
         opts("event_settings")
     );
 
-    // 4. Event Days
+    // 3. Event Days
     const EventDay = sequelize.define(
-        `${schemaName}_EventDay`,
+        "EventDay",
         {
             id: {
                 type: DataTypes.UUID,
                 defaultValue: DataTypes.UUIDV4,
                 primaryKey: true,
             },
+            event_id: eventIdField,
             day_number: {
                 type: DataTypes.INTEGER,
                 allowNull: false,
@@ -213,15 +140,16 @@ function defineEventModels(sequelize, schemaName = "event_template") {
         opts("event_days")
     );
 
-    // 5. Tracks
+    // 4. Tracks
     const Track = sequelize.define(
-        `${schemaName}_Track`,
+        "Track",
         {
             id: {
                 type: DataTypes.UUID,
                 defaultValue: DataTypes.UUIDV4,
                 primaryKey: true,
             },
+            event_id: eventIdField,
             name: {
                 type: DataTypes.STRING(150),
                 allowNull: false,
@@ -242,15 +170,16 @@ function defineEventModels(sequelize, schemaName = "event_template") {
         opts("tracks")
     );
 
-    // 6. Venues
+    // 5. Venues
     const Venue = sequelize.define(
-        `${schemaName}_Venue`,
+        "Venue",
         {
             id: {
                 type: DataTypes.UUID,
                 defaultValue: DataTypes.UUIDV4,
                 primaryKey: true,
             },
+            event_id: eventIdField,
             name: {
                 type: DataTypes.STRING(150),
                 allowNull: false,
@@ -267,15 +196,16 @@ function defineEventModels(sequelize, schemaName = "event_template") {
         opts("venues")
     );
 
-    // 7. Attendees
+    // 6. Attendees
     const Attendee = sequelize.define(
-        `${schemaName}_Attendee`,
+        "Attendee",
         {
             id: {
                 type: DataTypes.UUID,
                 defaultValue: DataTypes.UUIDV4,
                 primaryKey: true,
             },
+            event_id: eventIdField,
             full_name: {
                 type: DataTypes.STRING(150),
                 allowNull: false,
@@ -315,11 +245,6 @@ function defineEventModels(sequelize, schemaName = "event_template") {
             photo_asset_id: {
                 type: DataTypes.UUID,
                 allowNull: true,
-                references: {
-                    model: { tableName: "media_assets", schema: schemaName },
-                    key: "id",
-                },
-                onDelete: "SET NULL",
             },
             qr_token_hash: {
                 type: DataTypes.TEXT,
@@ -354,12 +279,20 @@ function defineEventModels(sequelize, schemaName = "event_template") {
                 defaultValue: DataTypes.NOW,
             },
         },
-        optsWithTimestamps("attendees")
+        {
+            ...optsWithTimestamps("attendees"),
+            indexes: [
+                {
+                    unique: true,
+                    fields: ["event_id", "email"],
+                },
+            ],
+        }
     );
 
-    // 8. Attendee Sessions
+    // 7. Attendee Sessions
     const AttendeeSession = sequelize.define(
-        `${schemaName}_AttendeeSession`,
+        "AttendeeSession",
         {
             id: {
                 type: DataTypes.UUID,
@@ -387,9 +320,9 @@ function defineEventModels(sequelize, schemaName = "event_template") {
         opts("attendee_sessions")
     );
 
-    // 9. Attendee Password Reset Tokens
+    // 8. Attendee Password Reset Tokens
     const AttendeePasswordResetToken = sequelize.define(
-        `${schemaName}_AttendeePasswordResetToken`,
+        "AttendeePasswordResetToken",
         {
             id: {
                 type: DataTypes.UUID,
@@ -425,9 +358,9 @@ function defineEventModels(sequelize, schemaName = "event_template") {
         opts("attendee_password_reset_tokens")
     );
 
-    // 10. Attendee Privacy Settings
+    // 9. Attendee Privacy Settings
     const AttendeePrivacySetting = sequelize.define(
-        `${schemaName}_AttendeePrivacySetting`,
+        "AttendeePrivacySetting",
         {
             attendee_id: {
                 type: DataTypes.UUID,
@@ -460,15 +393,16 @@ function defineEventModels(sequelize, schemaName = "event_template") {
         opts("attendee_privacy_settings")
     );
 
-    // 11. Exhibitor Categories
+    // 10. Exhibitor Categories
     const ExhibitorCategory = sequelize.define(
-        `${schemaName}_ExhibitorCategory`,
+        "ExhibitorCategory",
         {
             id: {
                 type: DataTypes.UUID,
                 defaultValue: DataTypes.UUIDV4,
                 primaryKey: true,
             },
+            event_id: eventIdField,
             name: {
                 type: DataTypes.STRING(150),
                 allowNull: false,
@@ -485,15 +419,16 @@ function defineEventModels(sequelize, schemaName = "event_template") {
         opts("exhibitor_categories")
     );
 
-    // 12. Exhibitors
+    // 11. Exhibitors
     const Exhibitor = sequelize.define(
-        `${schemaName}_Exhibitor`,
+        "Exhibitor",
         {
             id: {
                 type: DataTypes.UUID,
                 defaultValue: DataTypes.UUIDV4,
                 primaryKey: true,
             },
+            event_id: eventIdField,
             category_id: {
                 type: DataTypes.UUID,
                 allowNull: true,
@@ -506,20 +441,10 @@ function defineEventModels(sequelize, schemaName = "event_template") {
             logo_asset_id: {
                 type: DataTypes.UUID,
                 allowNull: true,
-                references: {
-                    model: { tableName: "media_assets", schema: schemaName },
-                    key: "id",
-                },
-                onDelete: "SET NULL",
             },
             representative_attendee_id: {
                 type: DataTypes.UUID,
                 allowNull: true,
-                references: {
-                    model: { tableName: "attendees", schema: schemaName },
-                    key: "id",
-                },
-                onDelete: "SET NULL",
             },
             company_name: {
                 type: DataTypes.STRING(200),
@@ -569,9 +494,9 @@ function defineEventModels(sequelize, schemaName = "event_template") {
         optsWithTimestamps("exhibitors")
     );
 
-    // 13. Exhibitor Offerings
+    // 12. Exhibitor Offerings
     const ExhibitorOffering = sequelize.define(
-        `${schemaName}_ExhibitorOffering`,
+        "ExhibitorOffering",
         {
             id: {
                 type: DataTypes.UUID,
@@ -611,23 +536,19 @@ function defineEventModels(sequelize, schemaName = "event_template") {
         opts("exhibitor_offerings")
     );
 
-    // 14. Event Floor Maps
+    // 13. Event Floor Maps
     const EventFloorMap = sequelize.define(
-        `${schemaName}_EventFloorMap`,
+        "EventFloorMap",
         {
             id: {
                 type: DataTypes.UUID,
                 defaultValue: DataTypes.UUIDV4,
                 primaryKey: true,
             },
+            event_id: eventIdField,
             media_asset_id: {
                 type: DataTypes.UUID,
                 allowNull: false,
-                references: {
-                    model: { tableName: "media_assets", schema: schemaName },
-                    key: "id",
-                },
-                onDelete: "CASCADE",
             },
             uploaded_by_admin_id: {
                 type: DataTypes.UUID,
@@ -641,9 +562,9 @@ function defineEventModels(sequelize, schemaName = "event_template") {
         opts("event_floor_maps")
     );
 
-    // 15. Stalls
+    // 14. Stalls
     const Stall = sequelize.define(
-        `${schemaName}_Stall`,
+        "Stall",
         {
             id: {
                 type: DataTypes.UUID,
@@ -688,15 +609,16 @@ function defineEventModels(sequelize, schemaName = "event_template") {
         opts("stalls")
     );
 
-    // 16. Sponsorship Tiers
+    // 15. Sponsorship Tiers
     const SponsorshipTier = sequelize.define(
-        `${schemaName}_SponsorshipTier`,
+        "SponsorshipTier",
         {
             id: {
                 type: DataTypes.UUID,
                 defaultValue: DataTypes.UUIDV4,
                 primaryKey: true,
             },
+            event_id: eventIdField,
             name: {
                 type: DataTypes.STRING(100),
                 allowNull: false,
@@ -709,15 +631,16 @@ function defineEventModels(sequelize, schemaName = "event_template") {
         opts("sponsorship_tiers")
     );
 
-    // 17. Sponsors
+    // 16. Sponsors
     const Sponsor = sequelize.define(
-        `${schemaName}_Sponsor`,
+        "Sponsor",
         {
             id: {
                 type: DataTypes.UUID,
                 defaultValue: DataTypes.UUIDV4,
                 primaryKey: true,
             },
+            event_id: eventIdField,
             tier_id: {
                 type: DataTypes.UUID,
                 allowNull: false,
@@ -730,14 +653,9 @@ function defineEventModels(sequelize, schemaName = "event_template") {
             representative_attendee_id: {
                 type: DataTypes.UUID,
                 allowNull: true,
-                references: {
-                    model: { tableName: "attendees", schema: schemaName },
-                    key: "id",
-                },
-                onDelete: "SET NULL",
             },
             organization_type: {
-                type: DataTypes.STRING(20),
+                type: DataTypes.STRING(100),
                 allowNull: true,
             },
             organization_name: {
@@ -751,11 +669,6 @@ function defineEventModels(sequelize, schemaName = "event_template") {
             logo_asset_id: {
                 type: DataTypes.UUID,
                 allowNull: true,
-                references: {
-                    model: { tableName: "media_assets", schema: schemaName },
-                    key: "id",
-                },
-                onDelete: "SET NULL",
             },
             representative_name: {
                 type: DataTypes.STRING(150),
@@ -797,15 +710,16 @@ function defineEventModels(sequelize, schemaName = "event_template") {
         optsWithTimestamps("sponsors")
     );
 
-    // 18. Sessions
+    // 17. Sessions
     const Session = sequelize.define(
-        `${schemaName}_Session`,
+        "Session",
         {
             id: {
                 type: DataTypes.UUID,
                 defaultValue: DataTypes.UUIDV4,
                 primaryKey: true,
             },
+            event_id: eventIdField,
             event_day_id: {
                 type: DataTypes.UUID,
                 allowNull: false,
@@ -869,15 +783,16 @@ function defineEventModels(sequelize, schemaName = "event_template") {
         optsWithTimestamps("sessions")
     );
 
-    // 19. Speakers
+    // 18. Speakers
     const Speaker = sequelize.define(
-        `${schemaName}_Speaker`,
+        "Speaker",
         {
             id: {
                 type: DataTypes.UUID,
                 defaultValue: DataTypes.UUIDV4,
                 primaryKey: true,
             },
+            event_id: eventIdField,
             full_name: {
                 type: DataTypes.STRING(150),
                 allowNull: false,
@@ -897,11 +812,6 @@ function defineEventModels(sequelize, schemaName = "event_template") {
             photo_asset_id: {
                 type: DataTypes.UUID,
                 allowNull: true,
-                references: {
-                    model: { tableName: "media_assets", schema: schemaName },
-                    key: "id",
-                },
-                onDelete: "SET NULL",
             },
             created_at: {
                 type: DataTypes.DATE,
@@ -911,9 +821,9 @@ function defineEventModels(sequelize, schemaName = "event_template") {
         opts("speakers")
     );
 
-    // 20. Session Speakers
+    // 19. Session Speakers
     const SessionSpeaker = sequelize.define(
-        `${schemaName}_SessionSpeaker`,
+        "SessionSpeaker",
         {
             session_id: {
                 type: DataTypes.UUID,
@@ -943,9 +853,9 @@ function defineEventModels(sequelize, schemaName = "event_template") {
         opts("session_speakers")
     );
 
-    // 21. Saved Sessions
+    // 20. Saved Sessions
     const SavedSession = sequelize.define(
-        `${schemaName}_SavedSession`,
+        "SavedSession",
         {
             attendee_id: {
                 type: DataTypes.UUID,
@@ -975,15 +885,16 @@ function defineEventModels(sequelize, schemaName = "event_template") {
         opts("saved_sessions")
     );
 
-    // 22. Connections
+    // 21. Connections
     const Connection = sequelize.define(
-        `${schemaName}_Connection`,
+        "Connection",
         {
             id: {
                 type: DataTypes.UUID,
                 defaultValue: DataTypes.UUIDV4,
                 primaryKey: true,
             },
+            event_id: eventIdField,
             attendee_a_id: {
                 type: DataTypes.UUID,
                 allowNull: false,
@@ -1031,9 +942,9 @@ function defineEventModels(sequelize, schemaName = "event_template") {
         opts("connections")
     );
 
-    // 23. Connection Shared Fields
+    // 22. Connection Shared Fields
     const ConnectionSharedField = sequelize.define(
-        `${schemaName}_ConnectionSharedField`,
+        "ConnectionSharedField",
         {
             connection_id: {
                 type: DataTypes.UUID,
@@ -1076,15 +987,16 @@ function defineEventModels(sequelize, schemaName = "event_template") {
         opts("connection_shared_fields")
     );
 
-    // 24. Conversations
+    // 23. Conversations
     const Conversation = sequelize.define(
-        `${schemaName}_Conversation`,
+        "Conversation",
         {
             id: {
                 type: DataTypes.UUID,
                 defaultValue: DataTypes.UUIDV4,
                 primaryKey: true,
             },
+            event_id: eventIdField,
             connection_id: {
                 type: DataTypes.UUID,
                 allowNull: false,
@@ -1110,9 +1022,9 @@ function defineEventModels(sequelize, schemaName = "event_template") {
         opts("conversations")
     );
 
-    // 25. Messages
+    // 24. Messages
     const Message = sequelize.define(
-        `${schemaName}_Message`,
+        "Message",
         {
             id: {
                 type: DataTypes.UUID,
@@ -1153,15 +1065,16 @@ function defineEventModels(sequelize, schemaName = "event_template") {
         opts("messages")
     );
 
-    // 26. Meetings
+    // 25. Meetings
     const Meeting = sequelize.define(
-        `${schemaName}_Meeting`,
+        "Meeting",
         {
             id: {
                 type: DataTypes.UUID,
                 defaultValue: DataTypes.UUIDV4,
                 primaryKey: true,
             },
+            event_id: eventIdField,
             requester_attendee_id: {
                 type: DataTypes.UUID,
                 allowNull: false,
@@ -1238,9 +1151,9 @@ function defineEventModels(sequelize, schemaName = "event_template") {
         optsWithTimestamps("meetings")
     );
 
-    // 27. Meeting Reschedule Requests
+    // 26. Meeting Reschedule Requests
     const MeetingRescheduleRequest = sequelize.define(
-        `${schemaName}_MeetingRescheduleRequest`,
+        "MeetingRescheduleRequest",
         {
             id: {
                 type: DataTypes.UUID,
@@ -1302,15 +1215,16 @@ function defineEventModels(sequelize, schemaName = "event_template") {
         opts("meeting_reschedule_requests")
     );
 
-    // 28. Albums
+    // 27. Albums
     const Album = sequelize.define(
-        `${schemaName}_Album`,
+        "Album",
         {
             id: {
                 type: DataTypes.UUID,
                 defaultValue: DataTypes.UUIDV4,
                 primaryKey: true,
             },
+            event_id: eventIdField,
             name: {
                 type: DataTypes.STRING(200),
                 allowNull: false,
@@ -1343,9 +1257,9 @@ function defineEventModels(sequelize, schemaName = "event_template") {
         optsWithTimestamps("albums")
     );
 
-    // 29. Gallery Photos
+    // 28. Gallery Photos
     const GalleryPhoto = sequelize.define(
-        `${schemaName}_GalleryPhoto`,
+        "GalleryPhoto",
         {
             id: {
                 type: DataTypes.UUID,
@@ -1373,11 +1287,6 @@ function defineEventModels(sequelize, schemaName = "event_template") {
             owner_attendee_id: {
                 type: DataTypes.UUID,
                 allowNull: true,
-                references: {
-                    model: { tableName: "attendees", schema: schemaName },
-                    key: "id",
-                },
-                onDelete: "SET NULL",
             },
             visibility: {
                 type: DataTypes.STRING(20),
@@ -1399,15 +1308,16 @@ function defineEventModels(sequelize, schemaName = "event_template") {
         opts("gallery_photos")
     );
 
-    // 30. Announcements
+    // 29. Announcements
     const Announcement = sequelize.define(
-        `${schemaName}_Announcement`,
+        "Announcement",
         {
             id: {
                 type: DataTypes.UUID,
                 defaultValue: DataTypes.UUIDV4,
                 primaryKey: true,
             },
+            event_id: eventIdField,
             title: {
                 type: DataTypes.STRING(200),
                 allowNull: false,
@@ -1440,9 +1350,9 @@ function defineEventModels(sequelize, schemaName = "event_template") {
         optsWithTimestamps("announcements")
     );
 
-    // 31. Attendee Devices
+    // 30. Attendee Devices
     const AttendeeDevice = sequelize.define(
-        `${schemaName}_AttendeeDevice`,
+        "AttendeeDevice",
         {
             id: {
                 type: DataTypes.UUID,
@@ -1486,15 +1396,16 @@ function defineEventModels(sequelize, schemaName = "event_template") {
         optsWithTimestamps("attendee_devices")
     );
 
-    // 32. Notifications
+    // 31. Notifications
     const Notification = sequelize.define(
-        `${schemaName}_Notification`,
+        "Notification",
         {
             id: {
                 type: DataTypes.UUID,
                 defaultValue: DataTypes.UUIDV4,
                 primaryKey: true,
             },
+            event_id: eventIdField,
             recipient_attendee_id: {
                 type: DataTypes.UUID,
                 allowNull: false,
@@ -1549,9 +1460,9 @@ function defineEventModels(sequelize, schemaName = "event_template") {
         opts("notifications")
     );
 
-    // 33. Notification Deliveries
+    // 32. Notification Deliveries
     const NotificationDelivery = sequelize.define(
-        `${schemaName}_NotificationDelivery`,
+        "NotificationDelivery",
         {
             id: {
                 type: DataTypes.UUID,
@@ -1604,15 +1515,16 @@ function defineEventModels(sequelize, schemaName = "event_template") {
         opts("notification_deliveries")
     );
 
-    // 34. Attendee Import Jobs
+    // 33. Attendee Import Jobs
     const AttendeeImportJob = sequelize.define(
-        `${schemaName}_AttendeeImportJob`,
+        "AttendeeImportJob",
         {
             id: {
                 type: DataTypes.UUID,
                 defaultValue: DataTypes.UUIDV4,
                 primaryKey: true,
             },
+            event_id: eventIdField,
             uploaded_by_admin_id: {
                 type: DataTypes.UUID,
                 allowNull: true,
@@ -1620,11 +1532,6 @@ function defineEventModels(sequelize, schemaName = "event_template") {
             source_asset_id: {
                 type: DataTypes.UUID,
                 allowNull: true,
-                references: {
-                    model: { tableName: "media_assets", schema: schemaName },
-                    key: "id",
-                },
-                onDelete: "SET NULL",
             },
             status: {
                 type: DataTypes.STRING(20),
@@ -1662,9 +1569,9 @@ function defineEventModels(sequelize, schemaName = "event_template") {
         opts("attendee_import_jobs")
     );
 
-    // 35. Attendee Import Rows
+    // 34. Attendee Import Rows
     const AttendeeImportRow = sequelize.define(
-        `${schemaName}_AttendeeImportRow`,
+        "AttendeeImportRow",
         {
             id: {
                 type: DataTypes.UUID,
@@ -1717,15 +1624,16 @@ function defineEventModels(sequelize, schemaName = "event_template") {
         opts("attendee_import_rows")
     );
 
-    // 36. Report Exports
+    // 35. Report Exports
     const ReportExport = sequelize.define(
-        `${schemaName}_ReportExport`,
+        "ReportExport",
         {
             id: {
                 type: DataTypes.UUID,
                 defaultValue: DataTypes.UUIDV4,
                 primaryKey: true,
             },
+            event_id: eventIdField,
             requested_by_admin_id: {
                 type: DataTypes.UUID,
                 allowNull: true,
@@ -1745,11 +1653,6 @@ function defineEventModels(sequelize, schemaName = "event_template") {
             output_asset_id: {
                 type: DataTypes.UUID,
                 allowNull: true,
-                references: {
-                    model: { tableName: "media_assets", schema: schemaName },
-                    key: "id",
-                },
-                onDelete: "SET NULL",
             },
             failure_reason: {
                 type: DataTypes.TEXT,
@@ -1820,6 +1723,16 @@ function defineEventModels(sequelize, schemaName = "event_template") {
         otherKey: "attendee_id",
     });
 
+    SavedSession.belongsTo(Session, { foreignKey: "session_id" });
+    Session.hasMany(SavedSession, { foreignKey: "session_id" });
+    SavedSession.belongsTo(Attendee, { foreignKey: "attendee_id" });
+    Attendee.hasMany(SavedSession, { foreignKey: "attendee_id" });
+
+    SessionSpeaker.belongsTo(Session, { foreignKey: "session_id" });
+    Session.hasMany(SessionSpeaker, { foreignKey: "session_id" });
+    SessionSpeaker.belongsTo(Speaker, { foreignKey: "speaker_id" });
+    Speaker.hasMany(SessionSpeaker, { foreignKey: "speaker_id" });
+
     Connection.hasOne(Conversation, { foreignKey: "connection_id" });
     Conversation.belongsTo(Connection, { foreignKey: "connection_id" });
 
@@ -1828,6 +1741,11 @@ function defineEventModels(sequelize, schemaName = "event_template") {
 
     Meeting.hasMany(MeetingRescheduleRequest, { foreignKey: "meeting_id" });
     MeetingRescheduleRequest.belongsTo(Meeting, { foreignKey: "meeting_id" });
+
+    Meeting.belongsTo(Venue, { foreignKey: "venue_id" });
+    Venue.hasMany(Meeting, { foreignKey: "venue_id" });
+    Meeting.belongsTo(Attendee, { foreignKey: "requester_attendee_id", as: "requester" });
+    Meeting.belongsTo(Attendee, { foreignKey: "recipient_attendee_id", as: "recipient" });
 
     Album.hasMany(GalleryPhoto, { foreignKey: "album_id" });
     GalleryPhoto.belongsTo(Album, { foreignKey: "album_id" });
@@ -1846,7 +1764,6 @@ function defineEventModels(sequelize, schemaName = "event_template") {
 
     return {
         MediaAsset,
-        Event,
         EventSetting,
         EventDay,
         Track,
