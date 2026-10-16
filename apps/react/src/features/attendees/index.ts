@@ -1,0 +1,2 @@
+// Attendees feature
+export {};
