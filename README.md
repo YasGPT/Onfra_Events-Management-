@@ -34,5 +34,5 @@ Attendee mobile (CLI):
 ```bash
 cd apps/attendee-mobile
 npm install
-npx CLI start
+npx react-native start
 ```

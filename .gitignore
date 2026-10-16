@@ -10,6 +10,9 @@ node_modules/
 dist/
 build/
 
+/README.md
+/docs/architecture-baseline.md
+
 # logs
 *.log
 npm-debug.log*
