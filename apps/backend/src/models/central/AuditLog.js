@@ -13,22 +13,16 @@ module.exports = (sequelize) => {
                 type: DataTypes.UUID,
                 allowNull: true,
                 references: {
-                    model: {
-                        tableName: "admins",
-                        schema: "public",
-                    },
+                    model: { tableName: "admins", schema: "public" },
                     key: "id",
                 },
                 onDelete: "SET NULL",
             },
-            event_registry_id: {
+            event_id: {
                 type: DataTypes.UUID,
                 allowNull: true,
                 references: {
-                    model: {
-                        tableName: "event_registry",
-                        schema: "public",
-                    },
+                    model: { tableName: "events", schema: "public" },
                     key: "id",
                 },
                 onDelete: "SET NULL",

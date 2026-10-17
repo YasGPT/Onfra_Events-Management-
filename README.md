@@ -4,7 +4,7 @@ Reusable platform for events and event organizers.
 
 ## Structure
 
-- `apps/attendee-mobile/` — Attendee mobile app (React Native + Expo)
+- `apps/attendee-mobile/` — Attendee mobile app (React Native + CLI)
 - `apps/admin-web/` — Admin web app (React + Vite + TypeScript)
 - `apps/backend/` — Shared API (Node.js + Express, port 5000)
 - `docs/` — Project documentation
@@ -29,10 +29,10 @@ npm install
 npm run dev        # starts on http://localhost:5173
 ```
 
-Attendee mobile (Expo):
+Attendee mobile (CLI):
 
 ```bash
 cd apps/attendee-mobile
 npm install
-npx expo start
+npx CLI start
 ```

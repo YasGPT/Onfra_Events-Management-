@@ -13,22 +13,16 @@ module.exports = (sequelize) => {
                 type: DataTypes.UUID,
                 allowNull: false,
                 references: {
-                    model: {
-                        tableName: "admins",
-                        schema: "public",
-                    },
+                    model: { tableName: "admins", schema: "public" },
                     key: "id",
                 },
                 onDelete: "CASCADE",
             },
-            event_registry_id: {
+            event_id: {
                 type: DataTypes.UUID,
                 allowNull: false,
                 references: {
-                    model: {
-                        tableName: "event_registry",
-                        schema: "public",
-                    },
+                    model: { tableName: "events", schema: "public" },
                     key: "id",
                 },
                 onDelete: "CASCADE",
@@ -37,10 +31,7 @@ module.exports = (sequelize) => {
                 type: DataTypes.UUID,
                 allowNull: true,
                 references: {
-                    model: {
-                        tableName: "admins",
-                        schema: "public",
-                    },
+                    model: { tableName: "admins", schema: "public" },
                     key: "id",
                 },
                 onDelete: "SET NULL",
@@ -58,6 +49,12 @@ module.exports = (sequelize) => {
             schema: "public",
             tableName: "admin_event_access",
             timestamps: false,
+            indexes: [
+                {
+                    unique: true,
+                    fields: ["admin_id", "event_id"],
+                },
+            ],
         }
     );
 
