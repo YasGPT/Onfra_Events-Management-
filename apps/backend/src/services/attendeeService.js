@@ -64,6 +64,123 @@ async function createAttendee(adminId, eventId, data) {
     return getAttendeeById(attendee.id);
 }
 
+async function createPendingAttendee(eventId, data) {
+    const {
+        full_name,
+        email,
+        phone,
+        company_name,
+        job_title,
+        bio,
+        website_url,
+        whatsapp_url,
+    } = data;
+
+    const normalizedEmail = email.trim().toLowerCase();
+
+    // Check duplicate in this event
+    const existing = await Attendee.findOne({
+        where: { event_id: eventId, email: normalizedEmail },
+    });
+
+    if (existing) {
+        throw new AppError(`Attendee with email '${normalizedEmail}' is already registered for this event.`, 409);
+    }
+
+    const qr_token_hash = crypto.randomBytes(32).toString("hex");
+
+    const attendee = await Attendee.create({
+        event_id: eventId,
+        registered_by_admin_id: null,
+        full_name: full_name.trim(),
+        email: normalizedEmail,
+        phone,
+        password_hash: null, // No password yet - will be set after approval
+        company_name,
+        job_title,
+        bio,
+        website_url,
+        whatsapp_url,
+        qr_token_hash,
+        registration_status: "pending",
+        is_active: false, // Inactive until approved
+        registered_at: new Date(),
+    });
+
+    // Seed default privacy settings
+    await AttendeePrivacySetting.bulkCreate([
+        { attendee_id: attendee.id, field_name: "email", directory_visible: true, allow_qr_share: true },
+        { attendee_id: attendee.id, field_name: "phone", directory_visible: false, allow_qr_share: true },
+        { attendee_id: attendee.id, field_name: "company_name", directory_visible: true, allow_qr_share: true },
+        { attendee_id: attendee.id, field_name: "job_title", directory_visible: true, allow_qr_share: true },
+    ]);
+
+    return getAttendeeById(attendee.id);
+}
+
+async function approveAttendee(attendeeId) {
+    const attendee = await Attendee.findByPk(attendeeId);
+    if (!attendee) {
+        throw new AppError("Attendee not found.", 404);
+    }
+
+    if (attendee.registration_status !== "pending") {
+        throw new AppError("Attendee is not in pending status.", 400);
+    }
+
+    // Update status to approved
+    await attendee.update({
+        registration_status: "approved",
+        is_active: true,
+    });
+
+    // Generate password setup token
+    const passwordSetupToken = crypto.randomBytes(32).toString("hex");
+    const passwordSetupExpiry = new Date();
+    passwordSetupExpiry.setHours(passwordSetupExpiry.getHours() + 24); // 24 hours
+
+    await attendee.update({
+        password_setup_token: passwordSetupToken,
+        password_setup_token_expires_at: passwordSetupExpiry,
+    });
+
+    return {
+        attendee: getAttendeeById(attendeeId),
+        passwordSetupToken,
+        passwordSetupExpiry,
+    };
+}
+
+async function setPassword(attendeeId, token, password) {
+    const attendee = await Attendee.findByPk(attendeeId);
+    if (!attendee) {
+        throw new AppError("Attendee not found.", 404);
+    }
+
+    if (attendee.registration_status !== "approved") {
+        throw new AppError("Attendee must be approved before setting password.", 400);
+    }
+
+    if (attendee.password_setup_token !== token) {
+        throw new AppError("Invalid password setup token.", 400);
+    }
+
+    if (new Date() > new Date(attendee.password_setup_token_expires_at)) {
+        throw new AppError("Password setup token has expired.", 400);
+    }
+
+    const password_hash = await hashPassword(password);
+
+    await attendee.update({
+        password_hash,
+        password_setup_token: null,
+        password_setup_token_expires_at: null,
+        registration_status: "registered",
+    });
+
+    return getAttendeeById(attendeeId);
+}
+
 async function getAttendeesAdmin(eventId, filters = {}) {
     const where = { event_id: eventId };
 

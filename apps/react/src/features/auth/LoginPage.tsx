@@ -1,9 +1,22 @@
+import { Navigate, useLocation } from 'react-router-dom';
+
 import { Brand } from '../../components/common';
 import { LoginForm } from '../../components/forms';
 import AuthLayout from '../../layouts/AuthLayout';
+import { useAppSelector } from '../../app/hooks';
 import { LoginShowcase } from './LoginShowcase';
 
 export function LoginPage() {
+  const user = useAppSelector((state) => state.auth.user);
+  const isAuthenticated = useAppSelector((state) => state.auth.isAuthenticated);
+  const location = useLocation();
+
+  // Already signed in (fresh login or restored session) → go to the workspace.
+  if (isAuthenticated && user) {
+    const from = (location.state as { from?: string } | null)?.from ?? '/';
+    return <Navigate to={from} replace />;
+  }
+
   return (
     <AuthLayout>
       <main className="login-page">

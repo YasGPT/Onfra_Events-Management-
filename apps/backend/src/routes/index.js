@@ -7,6 +7,7 @@ const attendeeRoutes = require("./attendeeRoutes");
 const networkingRoutes = require("./networkingRoutes");
 const reportRoutes = require("./reportRoutes");
 const adminRoutes = require("./adminRoutes");
+const publicRoutes = require("./publicRoutes");
 
 const router = express.Router();
 
@@ -42,6 +43,9 @@ router.get("/", (req, res) => {
 // Central Authentication & Admins
 router.use("/auth", authRoutes);
 router.use("/admins", adminRoutes);
+
+// Public Routes (No authentication)
+router.use("/public", publicRoutes);
 
 // Core Event Operations
 router.use("/events", eventRoutes);

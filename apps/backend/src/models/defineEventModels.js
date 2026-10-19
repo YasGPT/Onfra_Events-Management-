@@ -1,6 +1,9 @@
 const { DataTypes } = require("sequelize");
 
-function defineEventModels(sequelize, schemaName = "public") {
+// All event-scoped tables live in the single "public" schema, separated by event_id
+const schemaName = "public";
+
+function defineEventModels(sequelize) {
     const opts = (tableName) => ({
         schema: schemaName,
         tableName,
@@ -220,7 +223,15 @@ function defineEventModels(sequelize, schemaName = "public") {
             },
             password_hash: {
                 type: DataTypes.TEXT,
-                allowNull: false,
+                allowNull: true,
+            },
+            password_setup_token: {
+                type: DataTypes.TEXT,
+                allowNull: true,
+            },
+            password_setup_token_expires_at: {
+                type: DataTypes.DATE,
+                allowNull: true,
             },
             company_name: {
                 type: DataTypes.STRING(200),

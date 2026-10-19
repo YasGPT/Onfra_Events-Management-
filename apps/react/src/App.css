@@ -651,6 +651,25 @@ a:focus-visible {
   stroke-width: 2.5;
 }
 
+.form-status--error {
+  border-color: #f3ccd2;
+  color: var(--danger);
+  background: #fdf3f4;
+}
+
+.submit-button:disabled {
+  background: linear-gradient(135deg, #93aedd, #7f9ccc);
+  box-shadow: none;
+  cursor: default;
+  transform: none;
+}
+
+.submit-button:disabled:hover {
+  transform: none;
+  box-shadow: none;
+  filter: none;
+}
+
 .support-note {
   display: flex;
   justify-content: center;

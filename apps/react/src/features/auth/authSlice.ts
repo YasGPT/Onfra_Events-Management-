@@ -1,20 +1,27 @@
 import { createSlice } from '@reduxjs/toolkit';
 import type { PayloadAction } from '@reduxjs/toolkit';
-import type { User } from '../../types';
+import type { EventContext, User } from '../../types';
+import { getAccessToken } from '../../services/tokenStorage';
 
 export interface AuthState {
   user: User | null;
+  event: EventContext | null;
   token: string | null;
   isAuthenticated: boolean;
+  /** True while a login / profile request is in flight. */
   loading: boolean;
+  /** True while the saved session is being restored on first paint. */
+  initializing: boolean;
   error: string | null;
 }
 
 const initialState: AuthState = {
   user: null,
-  token: typeof window !== 'undefined' ? localStorage.getItem('token') : null,
-  isAuthenticated: typeof window !== 'undefined' ? Boolean(localStorage.getItem('token')) : false,
+  event: null,
+  token: typeof window !== 'undefined' ? getAccessToken() : null,
+  isAuthenticated: typeof window !== 'undefined' ? Boolean(getAccessToken()) : false,
   loading: false,
+  initializing: typeof window !== 'undefined' ? Boolean(getAccessToken()) : false,
   error: null,
 };
 
@@ -24,28 +31,41 @@ export const authSlice = createSlice({
   reducers: {
     setCredentials: (
       state,
-      action: PayloadAction<{ user: User; token: string }>
+      action: PayloadAction<{ user: User; token: string; event?: EventContext | null }>
     ) => {
-      const { user, token } = action.payload;
+      const { user, token, event = null } = action.payload;
       state.user = user;
       state.token = token;
+      state.event = event;
       state.isAuthenticated = true;
+      state.loading = false;
+      state.initializing = false;
       state.error = null;
-      if (typeof window !== 'undefined') {
-        localStorage.setItem('token', token);
-      }
+    },
+    /** Refreshes the profile / active event without touching the stored token. */
+    setProfile: (state, action: PayloadAction<{ user: User; event?: EventContext | null }>) => {
+      const { user, event = null } = action.payload;
+      state.user = user;
+      state.event = event;
+      state.isAuthenticated = true;
+      state.loading = false;
+      state.initializing = false;
+      state.error = null;
     },
     logout: (state) => {
       state.user = null;
+      state.event = null;
       state.token = null;
       state.isAuthenticated = false;
+      state.loading = false;
+      state.initializing = false;
       state.error = null;
-      if (typeof window !== 'undefined') {
-        localStorage.removeItem('token');
-      }
     },
     setLoading: (state, action: PayloadAction<boolean>) => {
       state.loading = action.payload;
+    },
+    setInitializing: (state, action: PayloadAction<boolean>) => {
+      state.initializing = action.payload;
     },
     setError: (state, action: PayloadAction<string | null>) => {
       state.error = action.payload;
@@ -53,6 +73,7 @@ export const authSlice = createSlice({
   },
 });
 
-export const { setCredentials, logout, setLoading, setError } = authSlice.actions;
+export const { setCredentials, setProfile, logout, setLoading, setInitializing, setError } =
+  authSlice.actions;
 
 export default authSlice.reducer;

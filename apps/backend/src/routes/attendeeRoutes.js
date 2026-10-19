@@ -21,25 +21,31 @@ router.put("/profile/privacy", attendeeController.updatePrivacySettings);
 router.get(
     "/",
     requireUserType("admin"),
-    requireRoles("Super Admin", "Event Manager"),
     attendeeController.listAttendeesAdmin
 );
 
 router.post(
     "/",
     requireUserType("admin"),
-    requireRoles("Super Admin", "Event Manager"),
     attendeeController.registerAttendee
 );
 
 router.patch(
     "/:id/status",
     requireUserType("admin"),
-    requireRoles("Super Admin", "Event Manager"),
     attendeeController.toggleStatus
+);
+
+router.post(
+    "/:id/approve",
+    requireUserType("admin"),
+    attendeeController.approveAttendee
 );
 
 // Specific attendee profile view
 router.get("/:id", attendeeController.getAttendeeProfile);
+
+// Public password setup (no auth required)
+router.post("/:id/set-password", attendeeController.setPassword);
 
 module.exports = router;

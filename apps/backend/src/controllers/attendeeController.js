@@ -71,6 +71,25 @@ async function toggleStatus(req, res, next) {
     }
 }
 
+async function approveAttendee(req, res, next) {
+    try {
+        const result = await attendeeService.approveAttendee(req.params.id);
+        return sendResponse(res, 200, "Attendee approved successfully", result);
+    } catch (error) {
+        next(error);
+    }
+}
+
+async function setPassword(req, res, next) {
+    try {
+        const { token, password } = req.body;
+        const result = await attendeeService.setPassword(req.params.id, token, password);
+        return sendResponse(res, 200, "Password set successfully", result);
+    } catch (error) {
+        next(error);
+    }
+}
+
 module.exports = {
     registerAttendee,
     listAttendeesAdmin,
@@ -79,4 +98,6 @@ module.exports = {
     updateProfile,
     updatePrivacySettings,
     toggleStatus,
+    approveAttendee,
+    setPassword,
 };

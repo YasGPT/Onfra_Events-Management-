@@ -1,20 +1,20 @@
 const { DataTypes } = require("sequelize");
 
 module.exports = (sequelize) => {
-    const EventRegistry = sequelize.define(
-        "EventRegistry",
+    const Admin = sequelize.define(
+        "Admin",
         {
             id: {
                 type: DataTypes.UUID,
                 defaultValue: DataTypes.UUIDV4,
                 primaryKey: true,
             },
-            created_by_admin_id: {
+            role_id: {
                 type: DataTypes.UUID,
                 allowNull: true,
                 references: {
                     model: {
-                        tableName: "admins",
+                        tableName: "admin_roles",
                         schema: "public",
                     },
                     key: "id",
@@ -26,31 +26,35 @@ module.exports = (sequelize) => {
                 allowNull: false,
                 unique: true,
             },
-            schema_name: {
-                type: DataTypes.STRING(63),
+            full_name: {
+                type: DataTypes.STRING(150),
+                allowNull: false,
+            },
+            email: {
+                type: DataTypes.STRING(255),
                 allowNull: false,
                 unique: true,
-            },
-            provisioning_status: {
-                type: DataTypes.STRING(20),
-                defaultValue: "pending",
                 validate: {
-                    isIn: [["pending", "provisioning", "ready", "failed"]],
+                    isEmail: true,
                 },
+            },
+            phone: {
+                type: DataTypes.STRING(30),
+                allowNull: true,
+            },
+            password_hash: {
+                type: DataTypes.TEXT,
+                allowNull: false,
             },
             is_active: {
                 type: DataTypes.BOOLEAN,
                 defaultValue: true,
             },
-            schema_version: {
-                type: DataTypes.STRING(100),
-                defaultValue: "1.0.0",
-            },
-            provisioned_at: {
+            email_verified_at: {
                 type: DataTypes.DATE,
                 allowNull: true,
             },
-            last_migrated_at: {
+            last_login_at: {
                 type: DataTypes.DATE,
                 allowNull: true,
             },
@@ -65,12 +69,12 @@ module.exports = (sequelize) => {
         },
         {
             schema: "public",
-            tableName: "event_registry",
+            tableName: "admins",
             timestamps: true,
             createdAt: "created_at",
             updatedAt: "updated_at",
         }
     );
 
-    return EventRegistry;
+    return Admin;
 };

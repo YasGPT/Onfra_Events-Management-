@@ -1,4 +1,4 @@
-const { Event, AdminEventAccess } = require("../models");
+const { Event } = require("../models");
 const AppError = require("../utils/AppError");
 
 /**
@@ -27,21 +27,16 @@ async function resolveEventContext(req, res, next) {
                 );
             }
 
-            // Verify admin has access to this event (unless Super Admin)
-            if (req.user.role !== "Super Admin") {
-                const access = await AdminEventAccess.findOne({
-                    where: {
-                        admin_id: req.user.id,
-                        event_id: eventId,
-                        is_active: true,
-                    },
-                });
+            // Verify admin's business_code matches the event's business_code
+            const event = await Event.findByPk(eventId);
+            if (!event) {
+                return next(new AppError("Event not found.", 404));
+            }
 
-                if (!access) {
-                    return next(
-                        new AppError("Access denied. You do not have permission to manage this event.", 403)
-                    );
-                }
+            if (event.business_code !== req.user.businessCode) {
+                return next(
+                    new AppError("Access denied. You do not have permission to manage this event.", 403)
+                );
             }
         }
 

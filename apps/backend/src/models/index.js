@@ -1,14 +1,13 @@
 const sequelize = require("../config/database");
-const defineAdminRole = require("./central/AdminRole");
-const definePermission = require("./central/Permission");
-const defineAdminRolePermission = require("./central/AdminRolePermission");
-const defineAdmin = require("./central/Admin");
-const defineAdminSession = require("./central/AdminSession");
-const defineAdminPasswordResetToken = require("./central/AdminPasswordResetToken");
-const defineEvent = require("./central/Event");
-const defineAdminEventAccess = require("./central/AdminEventAccess");
-const defineAuditLog = require("./central/AuditLog");
-const defineEventModels = require("./event/defineEventModels");
+const defineAdminRole = require("./AdminRole");
+const definePermission = require("./Permission");
+const defineAdminRolePermission = require("./AdminRolePermission");
+const defineAdmin = require("./Admin");
+const defineAdminSession = require("./AdminSession");
+const defineAdminPasswordResetToken = require("./AdminPasswordResetToken");
+const defineEvent = require("./Event");
+const defineAuditLog = require("./AuditLog");
+const defineEventModels = require("./defineEventModels");
 
 // 1. Initialize Central Models (all in "public" schema)
 const AdminRole = defineAdminRole(sequelize);
@@ -18,11 +17,10 @@ const Admin = defineAdmin(sequelize);
 const AdminSession = defineAdminSession(sequelize);
 const AdminPasswordResetToken = defineAdminPasswordResetToken(sequelize);
 const Event = defineEvent(sequelize);
-const AdminEventAccess = defineAdminEventAccess(sequelize);
 const AuditLog = defineAuditLog(sequelize);
 
 // 2. Initialize Event Models (also in "public" schema, linked by event_id)
-const eventModels = defineEventModels(sequelize, "public");
+const eventModels = defineEventModels(sequelize);
 
 // 3. Central Associations
 AdminRole.belongsToMany(Permission, {
@@ -47,12 +45,6 @@ AdminPasswordResetToken.belongsTo(Admin, { foreignKey: "admin_id" });
 
 Admin.hasMany(Event, { foreignKey: "created_by_admin_id" });
 Event.belongsTo(Admin, { foreignKey: "created_by_admin_id" });
-
-Admin.hasMany(AdminEventAccess, { foreignKey: "admin_id" });
-AdminEventAccess.belongsTo(Admin, { foreignKey: "admin_id" });
-
-Event.hasMany(AdminEventAccess, { foreignKey: "event_id" });
-AdminEventAccess.belongsTo(Event, { foreignKey: "event_id" });
 
 Admin.hasMany(AuditLog, { foreignKey: "actor_admin_id" });
 AuditLog.belongsTo(Admin, { foreignKey: "actor_admin_id" });
@@ -96,11 +88,6 @@ async function syncDatabase(options = {}) {
     // 1. Ensure public schema exists
     await sequelize.query('CREATE SCHEMA IF NOT EXISTS "public";');
 
-    // Clean up old legacy schemas if present
-    await sequelize.query('DROP SCHEMA IF EXISTS "event_template" CASCADE;');
-    await sequelize.query('DROP TABLE IF EXISTS "public"."event_registry" CASCADE;');
-    await sequelize.query('DROP TABLE IF EXISTS "public"."attendee_lookups" CASCADE;');
-
     // 2. Sync central tables
     await AdminRole.sync(options);
     await Permission.sync(options);
@@ -109,7 +96,6 @@ async function syncDatabase(options = {}) {
     await AdminSession.sync(options);
     await AdminPasswordResetToken.sync(options);
     await Event.sync(options);
-    await AdminEventAccess.sync(options);
     await AuditLog.sync(options);
 
     // 3. Sync all event tables in public schema
@@ -132,7 +118,6 @@ module.exports = {
     AdminSession,
     AdminPasswordResetToken,
     Event,
-    AdminEventAccess,
     AuditLog,
     // Event Models
     ...eventModels,

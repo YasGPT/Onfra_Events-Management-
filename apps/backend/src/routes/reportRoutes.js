@@ -2,7 +2,7 @@ const express = require("express");
 const reportController = require("../controllers/reportController");
 const { authenticate } = require("../middlewares/authMiddleware");
 const { resolveEventContext } = require("../middlewares/eventMiddleware");
-const { requireUserType, requireRoles } = require("../middlewares/roleMiddleware");
+const { requireUserType } = require("../middlewares/roleMiddleware");
 
 const router = express.Router({ mergeParams: true });
 
@@ -10,8 +10,7 @@ const router = express.Router({ mergeParams: true });
 router.use(
     authenticate,
     resolveEventContext,
-    requireUserType("admin"),
-    requireRoles("Super Admin", "Event Manager")
+    requireUserType("admin")
 );
 
 router.get("/overview", reportController.getEventOverview);

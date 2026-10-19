@@ -1,0 +1,183 @@
+/* Events module — page shell, card grid and create dialog extras */
+.events {
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+  padding: 28px clamp(20px, 3vw, 40px) 46px;
+}
+
+.event-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(330px, 1fr));
+  gap: 16px;
+}
+
+.event-card {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 20px;
+  border: 1px solid #e6eaf2;
+  border-radius: 14px;
+  background: #ffffff;
+  box-shadow: 0 8px 20px rgba(18, 33, 63, 0.04);
+  transition: border-color 160ms ease, box-shadow 160ms ease, transform 160ms ease;
+}
+
+.event-card:hover {
+  border-color: #c9d5f2;
+  box-shadow: 0 14px 28px rgba(18, 33, 63, 0.08);
+  transform: translateY(-1px);
+}
+
+.event-card--active {
+  border-color: #b7c9f8;
+  background: linear-gradient(180deg, #f7faff, #ffffff);
+  box-shadow: 0 12px 26px rgba(43, 84, 203, 0.1);
+}
+
+.event-card__head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.event-card__title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.event-card__title h3 {
+  margin: 0;
+  color: var(--ink);
+  font-size: 15.5px;
+  font-weight: 730;
+}
+
+.event-card__copy {
+  padding: 4px 9px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  color: #74829c;
+  background: #ffffff;
+  font: inherit;
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: border-color 150ms ease, color 150ms ease, background 150ms ease;
+}
+
+.event-card__copy:hover {
+  border-color: #b9c8ea;
+  color: var(--blue);
+  background: #f6f9ff;
+}
+
+.event-card__desc {
+  margin: 0;
+  color: var(--muted);
+  font-size: 12.8px;
+  line-height: 1.6;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.event-card__meta {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  margin: 0;
+  padding: 14px 0;
+  border-top: 1px dashed #e9edf5;
+  border-bottom: 1px dashed #e9edf5;
+}
+
+.event-card__meta dt {
+  color: var(--muted);
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.event-card__meta dd {
+  margin: 4px 0 0;
+  color: var(--ink);
+  font-size: 12.5px;
+  font-weight: 640;
+  overflow-wrap: anywhere;
+}
+
+.event-card__actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.event-card__badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 8px 12px;
+  border-radius: 999px;
+  color: #1f8a52;
+  background: #e7f7ee;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.event-card__badge svg {
+  width: 14px;
+  height: 14px;
+}
+
+/* Loading placeholder cards */
+.event-card--skeleton {
+  gap: 12px;
+  pointer-events: none;
+}
+
+.event-card--skeleton span {
+  display: block;
+  border-radius: 8px;
+  background: linear-gradient(90deg, #eef1f7 25%, #f7f9fd 37%, #eef1f7 63%);
+  background-size: 400% 100%;
+  animation: event-card-shimmer 1.35s ease-in-out infinite;
+}
+
+.event-card--skeleton span:nth-child(1) {
+  height: 18px;
+  width: 62%;
+}
+
+.event-card--skeleton span:nth-child(2) {
+  height: 12px;
+  width: 90%;
+}
+
+.event-card--skeleton span:nth-child(3) {
+  height: 12px;
+  width: 45%;
+}
+
+@keyframes event-card-shimmer {
+  from {
+    background-position: 100% 50%;
+  }
+  to {
+    background-position: 0 50%;
+  }
+}
+
+@media (max-width: 1080px) {
+  .event-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

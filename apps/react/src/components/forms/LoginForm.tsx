@@ -2,6 +2,8 @@ import { useState } from 'react';
 import type { FormEvent } from 'react';
 
 import { Icon } from '../common';
+import { useAppDispatch, useAppSelector } from '../../app/hooks';
+import { loginWithCredentials } from '../../features/auth/authThunks';
 import { isValidEmail } from '../../utils';
 import { FormField } from './FormField';
 
@@ -20,19 +22,20 @@ const initialValues: LoginFormValues = {
 };
 
 export function LoginForm() {
+  const dispatch = useAppDispatch();
+  const loading = useAppSelector((state) => state.auth.loading);
+  const serverError = useAppSelector((state) => state.auth.error);
   const [values, setValues] = useState<LoginFormValues>(initialValues);
   const [errors, setErrors] = useState<LoginFormErrors>({});
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(true);
-  const [status, setStatus] = useState('');
 
   const updateField = (field: keyof LoginFormValues, value: string) => {
     setValues((current) => ({ ...current, [field]: value }));
     setErrors((current) => ({ ...current, [field]: undefined }));
-    setStatus('');
   };
 
-  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
     const nextErrors: LoginFormErrors = {};
@@ -47,8 +50,20 @@ export function LoginForm() {
     }
 
     setErrors(nextErrors);
-    if (Object.keys(nextErrors).length === 0) {
-      setStatus('Your sign-in details are ready for secure verification.');
+    if (Object.keys(nextErrors).length > 0) return;
+
+    const result = await dispatch(
+      loginWithCredentials({
+        businessCode: values.businessCode,
+        email: values.email,
+        password: values.password,
+      }),
+    );
+
+    // A successful login flips auth.isAuthenticated, which redirects the
+    // /login route to the workspace, so nothing to do here but clear password.
+    if (loginWithCredentials.fulfilled.match(result)) {
+      setValues((current) => ({ ...current, password: '' }));
     }
   };
 
@@ -115,15 +130,15 @@ export function LoginForm() {
         Keep me signed in on this device
       </label>
 
-      <button className="submit-button" type="submit">
-        <span>Sign in to workspace</span>
-        <Icon name="arrow" />
+      <button className="submit-button" type="submit" disabled={loading}>
+        <span>{loading ? 'Verifying credentials…' : 'Sign in to workspace'}</span>
+        {!loading && <Icon name="arrow" />}
       </button>
 
-      {status && (
-        <p className="form-status" role="status">
-          <Icon name="check" />
-          {status}
+      {serverError && (
+        <p className="form-status form-status--error" role="alert">
+          <Icon name="eye-off" />
+          {serverError}
         </p>
       )}
     </form>

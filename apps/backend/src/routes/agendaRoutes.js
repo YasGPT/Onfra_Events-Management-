@@ -2,7 +2,7 @@ const express = require("express");
 const agendaController = require("../controllers/agendaController");
 const { authenticate } = require("../middlewares/authMiddleware");
 const { resolveEventContext } = require("../middlewares/eventMiddleware");
-const { requireUserType, requireRoles } = require("../middlewares/roleMiddleware");
+const { requireUserType } = require("../middlewares/roleMiddleware");
 
 const router = express.Router({ mergeParams: true });
 
@@ -14,7 +14,6 @@ router.get("/days", agendaController.listDays);
 router.post(
     "/days",
     requireUserType("admin"),
-    requireRoles("Super Admin", "Event Manager"),
     agendaController.createDay
 );
 
@@ -23,7 +22,6 @@ router.get("/tracks", agendaController.listTracks);
 router.post(
     "/tracks",
     requireUserType("admin"),
-    requireRoles("Super Admin", "Event Manager"),
     agendaController.createTrack
 );
 
@@ -32,7 +30,6 @@ router.get("/venues", agendaController.listVenues);
 router.post(
     "/venues",
     requireUserType("admin"),
-    requireRoles("Super Admin", "Event Manager"),
     agendaController.createVenue
 );
 
@@ -41,7 +38,6 @@ router.get("/speakers", agendaController.listSpeakers);
 router.post(
     "/speakers",
     requireUserType("admin"),
-    requireRoles("Super Admin", "Event Manager", "Content Manager"),
     agendaController.createSpeaker
 );
 
@@ -51,19 +47,16 @@ router.get("/sessions/:id", agendaController.getSession);
 router.post(
     "/sessions",
     requireUserType("admin"),
-    requireRoles("Super Admin", "Event Manager"),
     agendaController.createSession
 );
 router.put(
     "/sessions/:id",
     requireUserType("admin"),
-    requireRoles("Super Admin", "Event Manager"),
     agendaController.updateSession
 );
 router.delete(
     "/sessions/:id",
     requireUserType("admin"),
-    requireRoles("Super Admin", "Event Manager"),
     agendaController.deleteSession
 );
 

@@ -1,5 +1,6 @@
 // Login layout
 import React from 'react';
+import '../styles/auth.css';
 
 export interface AuthLayoutProps {
   children?: React.ReactNode;
