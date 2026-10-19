@@ -1,5 +1,5 @@
 // Admin sidebar/header layout
-import type { FC, ReactNode } from 'react';
+import { useState, type FC, type ReactNode } from 'react';
 import { NavLink, Outlet, useNavigate } from 'react-router-dom';
 
 import { useAppDispatch, useAppSelector } from '../app/hooks';
@@ -9,6 +9,7 @@ import { signOut } from '../features/auth/authThunks';
 import { selectActiveEvent } from '../features/events/eventsThunks';
 import { useActiveEvent } from '../features/events/useActiveEvent';
 import { useLoadEvents } from '../features/events/useLoadEvents';
+import { EventSettingsModal } from '../features/events/EventSettingsModal';
 import './admin.css';
 
 export interface AdminLayoutProps {
@@ -25,12 +26,13 @@ interface NavItem {
 
 const navItems: NavItem[] = [
   { label: 'Dashboard', path: '/', icon: 'grid', available: true },
-  { label: 'Events', path: '/events', icon: 'calendar', available: true },
-  { label: 'Attendees', path: '/attendees', icon: 'users', available: true },
-  { label: 'Agenda', path: '/agenda', icon: 'clock' },
-  { label: 'Exhibitors', path: '/exhibitors', icon: 'tag' },
-  { label: 'Sponsors', path: '/sponsors', icon: 'building' },
-  { label: 'Reports', path: '/reports', icon: 'chart' },
+  { label: 'Manage Event Details', path: '/events', icon: 'calendar', available: true },
+  { label: 'Manage Agenda', path: '/agenda', icon: 'calendar' },
+  { label: 'Manage Attendees', path: '/attendees', icon: 'users', available: true },
+  { label: 'Manage Exhibitors', path: '/exhibitors', icon: 'building', available: true },
+  { label: 'Manage Sponsors & Partners', path: '/sponsors', icon: 'handshake' },
+  { label: 'Manage Users', path: '/users', icon: 'user' },
+  { label: 'Reports & Analytics', path: '/reports', icon: 'chart' },
 ];
 
 export const AdminLayout: FC<AdminLayoutProps> = ({ children }) => {
@@ -39,6 +41,7 @@ export const AdminLayout: FC<AdminLayoutProps> = ({ children }) => {
   const user = useAppSelector((state) => state.auth.user);
   const eventList = useAppSelector((state) => state.events.list);
   const activeEvent = useActiveEvent();
+  const [settingsOpen, setSettingsOpen] = useState(false);
 
   // The header switcher needs the event list even when the first screen is the dashboard.
   useLoadEvents();
@@ -107,6 +110,19 @@ export const AdminLayout: FC<AdminLayoutProps> = ({ children }) => {
             ) : (
               <strong>{activeEvent?.name || activeEvent?.businessCode || 'Select an event'}</strong>
             )}
+
+            {activeEvent && (
+              <button
+                type="button"
+                className="ghost-button"
+                title="Event Settings & Rules"
+                onClick={() => setSettingsOpen(true)}
+                style={{ padding: '4px 10px', fontSize: '12px', display: 'inline-flex', alignItems: 'center', gap: '5px' }}
+              >
+                <Icon name="shield" />
+                <span>Settings</span>
+              </button>
+            )}
           </div>
 
           <div className="admin-topbar__user">
@@ -126,6 +142,15 @@ export const AdminLayout: FC<AdminLayoutProps> = ({ children }) => {
 
         <main className="admin-content">{children ?? <Outlet />}</main>
       </div>
+
+      {activeEvent && (
+        <EventSettingsModal
+          isOpen={settingsOpen}
+          onClose={() => setSettingsOpen(false)}
+          eventId={activeEvent.id}
+          eventName={activeEvent.name || activeEvent.businessCode || 'Active Event'}
+        />
+      )}
     </div>
   );
 };

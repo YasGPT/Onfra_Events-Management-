@@ -253,6 +253,14 @@ function defineEventModels(sequelize) {
                 type: DataTypes.TEXT,
                 allowNull: true,
             },
+            linkedin_url: {
+                type: DataTypes.TEXT,
+                allowNull: true,
+            },
+            photo_url: {
+                type: DataTypes.TEXT,
+                allowNull: true,
+            },
             photo_asset_id: {
                 type: DataTypes.UUID,
                 allowNull: true,
@@ -264,6 +272,46 @@ function defineEventModels(sequelize) {
             registration_status: {
                 type: DataTypes.STRING(20),
                 defaultValue: "registered",
+            },
+            rejection_reason: {
+                type: DataTypes.TEXT,
+                allowNull: true,
+            },
+            approved_at: {
+                type: DataTypes.DATE,
+                allowNull: true,
+            },
+            password_setup_at: {
+                type: DataTypes.DATE,
+                allowNull: true,
+            },
+            is_checked_in: {
+                type: DataTypes.BOOLEAN,
+                defaultValue: false,
+            },
+            checked_in_at: {
+                type: DataTypes.DATE,
+                allowNull: true,
+            },
+            check_in_location: {
+                type: DataTypes.STRING(150),
+                allowNull: true,
+            },
+            check_in_count: {
+                type: DataTypes.INTEGER,
+                defaultValue: 0,
+            },
+            is_badge_printed: {
+                type: DataTypes.BOOLEAN,
+                defaultValue: false,
+            },
+            badge_printed_at: {
+                type: DataTypes.DATE,
+                allowNull: true,
+            },
+            badge_template: {
+                type: DataTypes.STRING(50),
+                defaultValue: "standard",
             },
             registered_by_admin_id: {
                 type: DataTypes.UUID,
@@ -404,6 +452,92 @@ function defineEventModels(sequelize) {
         opts("attendee_privacy_settings")
     );
 
+    // 9b. Attendee Check Ins
+    const AttendeeCheckIn = sequelize.define(
+        "AttendeeCheckIn",
+        {
+            id: {
+                type: DataTypes.UUID,
+                defaultValue: DataTypes.UUIDV4,
+                primaryKey: true,
+            },
+            event_id: eventIdField,
+            attendee_id: {
+                type: DataTypes.UUID,
+                allowNull: false,
+                references: {
+                    model: { tableName: "attendees", schema: schemaName },
+                    key: "id",
+                },
+                onDelete: "CASCADE",
+            },
+            checked_in_at: {
+                type: DataTypes.DATE,
+                defaultValue: DataTypes.NOW,
+            },
+            gate_location: {
+                type: DataTypes.STRING(100),
+                defaultValue: "Main Gate",
+            },
+            method: {
+                type: DataTypes.STRING(30),
+                defaultValue: "manual",
+            },
+            performed_by_admin_id: {
+                type: DataTypes.UUID,
+                allowNull: true,
+            },
+            created_at: {
+                type: DataTypes.DATE,
+                defaultValue: DataTypes.NOW,
+            },
+        },
+        opts("attendee_check_ins")
+    );
+
+    // 9c. Attendee Activity Logs
+    const AttendeeActivityLog = sequelize.define(
+        "AttendeeActivityLog",
+        {
+            id: {
+                type: DataTypes.UUID,
+                defaultValue: DataTypes.UUIDV4,
+                primaryKey: true,
+            },
+            event_id: eventIdField,
+            attendee_id: {
+                type: DataTypes.UUID,
+                allowNull: false,
+                references: {
+                    model: { tableName: "attendees", schema: schemaName },
+                    key: "id",
+                },
+                onDelete: "CASCADE",
+            },
+            action_type: {
+                type: DataTypes.STRING(50),
+                allowNull: false,
+            },
+            title: {
+                type: DataTypes.STRING(150),
+                allowNull: false,
+            },
+            description: {
+                type: DataTypes.TEXT,
+                allowNull: true,
+            },
+            details: {
+                type: DataTypes.JSONB,
+                allowNull: true,
+            },
+            created_at: {
+                type: DataTypes.DATE,
+                defaultValue: DataTypes.NOW,
+            },
+        },
+        opts("attendee_activity_logs")
+    );
+
     // 10. Exhibitor Categories
     const ExhibitorCategory = sequelize.define(
         "ExhibitorCategory",
@@ -481,9 +615,34 @@ function defineEventModels(sequelize) {
                 type: DataTypes.STRING(30),
                 allowNull: true,
             },
+            booth_number: {
+                type: DataTypes.STRING(50),
+                allowNull: true,
+            },
+            booth_type: {
+                type: DataTypes.STRING(50),
+                allowNull: true,
+                defaultValue: "standard",
+            },
+            stall_size: {
+                type: DataTypes.STRING(50),
+                allowNull: true,
+            },
+            zone_location: {
+                type: DataTypes.STRING(50),
+                allowNull: true,
+            },
+            special_requirements: {
+                type: DataTypes.TEXT,
+                allowNull: true,
+            },
+            internal_notes: {
+                type: DataTypes.TEXT,
+                allowNull: true,
+            },
             status: {
                 type: DataTypes.STRING(20),
-                defaultValue: "active",
+                defaultValue: "pending",
             },
             display_order: {
                 type: DataTypes.INTEGER,
@@ -1688,6 +1847,12 @@ function defineEventModels(sequelize) {
     Attendee.hasMany(AttendeePrivacySetting, { foreignKey: "attendee_id" });
     AttendeePrivacySetting.belongsTo(Attendee, { foreignKey: "attendee_id" });
 
+    Attendee.hasMany(AttendeeCheckIn, { foreignKey: "attendee_id" });
+    AttendeeCheckIn.belongsTo(Attendee, { foreignKey: "attendee_id" });
+
+    Attendee.hasMany(AttendeeActivityLog, { foreignKey: "attendee_id" });
+    AttendeeActivityLog.belongsTo(Attendee, { foreignKey: "attendee_id" });
+
     ExhibitorCategory.hasMany(Exhibitor, { foreignKey: "category_id" });
     Exhibitor.belongsTo(ExhibitorCategory, { foreignKey: "category_id" });
 
@@ -1783,6 +1948,8 @@ function defineEventModels(sequelize) {
         AttendeeSession,
         AttendeePasswordResetToken,
         AttendeePrivacySetting,
+        AttendeeCheckIn,
+        AttendeeActivityLog,
         ExhibitorCategory,
         Exhibitor,
         ExhibitorOffering,

@@ -13,7 +13,7 @@ interface QuickLink {
 const links: QuickLink[] = [
   {
     label: 'Manage events',
-    description: 'Search, filter and create event workspaces',
+    description: 'Search, filter and manage events',
     path: '/events',
     icon: 'calendar',
   },

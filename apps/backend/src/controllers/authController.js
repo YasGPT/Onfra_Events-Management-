@@ -13,9 +13,27 @@ async function adminLogin(req, res, next) {
 
 async function attendeeLogin(req, res, next) {
     try {
-        const { email, password } = req.body || {};
-        const result = await authService.attendeeLogin({ email, password });
+        const { identifier, email, phone, password, event_id, business_code } = req.body || {};
+        const result = await authService.attendeeLogin({
+            identifier: identifier || email || phone,
+            password,
+            event_id,
+            business_code,
+        });
         return sendResponse(res, 200, "Attendee login successful", result);
+    } catch (error) {
+        next(error);
+    }
+}
+
+async function attendeeForgotPassword(req, res, next) {
+    try {
+        const { identifier, email, phone, event_id } = req.body || {};
+        const result = await authService.attendeeForgotPassword({
+            identifier: identifier || email || phone,
+            event_id,
+        });
+        return sendResponse(res, 200, result.message, result);
     } catch (error) {
         next(error);
     }
@@ -34,5 +52,6 @@ async function getProfile(req, res, next) {
 module.exports = {
     adminLogin,
     attendeeLogin,
+    attendeeForgotPassword,
     getProfile,
 };

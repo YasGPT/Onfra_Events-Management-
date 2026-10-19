@@ -23,6 +23,11 @@ function errorHandler(err, req, res, next) {
         error = new AppError("Authentication token has expired. Please log in again.", 401);
     }
 
+    // Handle payload too large
+    if (err.type === "entity.too.large") {
+        error = new AppError("The uploaded file is too large. Please upload an image under 10MB.", 413);
+    }
+
     const statusCode = error.statusCode || 500;
     const status = error.status || "error";
     const message = error.message || "Internal server error occurred.";

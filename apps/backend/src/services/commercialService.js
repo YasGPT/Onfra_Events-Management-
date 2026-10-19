@@ -34,7 +34,12 @@ async function createExhibitor(adminId, eventId, data) {
         contact_name,
         contact_email,
         contact_phone,
-        stall_number,
+        booth_number,
+        booth_type,
+        stall_size,
+        zone_location,
+        special_requirements,
+        internal_notes,
         display_order,
     } = data;
 
@@ -50,8 +55,14 @@ async function createExhibitor(adminId, eventId, data) {
         contact_name,
         contact_email,
         contact_phone,
+        booth_number,
+        booth_type: booth_type || "standard",
+        stall_size,
+        zone_location,
+        special_requirements,
+        internal_notes,
         display_order: display_order || 0,
-        status: "active",
+        status: "pending",
     });
 
     return getExhibitorById(exhibitor.id);
@@ -89,7 +100,34 @@ async function getExhibitorById(id) {
 
 async function updateExhibitor(id, data) {
     const exhibitor = await getExhibitorById(id);
-    await exhibitor.update(data);
+    
+    // Update only allowed fields
+    const allowedFields = [
+        'company_name',
+        'category_id',
+        'description',
+        'website_url',
+        'contact_name',
+        'contact_email',
+        'contact_phone',
+        'booth_number',
+        'booth_type',
+        'stall_size',
+        'zone_location',
+        'special_requirements',
+        'internal_notes',
+        'status',
+        'display_order',
+    ];
+    
+    const updateData = {};
+    allowedFields.forEach(field => {
+        if (data[field] !== undefined) {
+            updateData[field] = data[field];
+        }
+    });
+    
+    await exhibitor.update(updateData);
     return getExhibitorById(id);
 }
 
@@ -97,6 +135,34 @@ async function deleteExhibitor(id) {
     const exhibitor = await getExhibitorById(id);
     await exhibitor.destroy();
     return { success: true, message: "Exhibitor removed successfully." };
+}
+
+async function updateExhibitorStatus(id, status) {
+    const exhibitor = await getExhibitorById(id);
+    
+    const validStatuses = ['pending', 'approved', 'rejected', 'active', 'inactive'];
+    if (!validStatuses.includes(status)) {
+        throw new AppError(`Invalid status. Must be one of: ${validStatuses.join(', ')}`, 400);
+    }
+    
+    await exhibitor.update({ status });
+    return getExhibitorById(id);
+}
+
+async function getExhibitorStats(eventId) {
+    const total = await Exhibitor.count({ where: { event_id: eventId } });
+    const pending = await Exhibitor.count({ where: { event_id: eventId, status: 'pending' } });
+    const approved = await Exhibitor.count({ where: { event_id: eventId, status: 'approved' } });
+    const rejected = await Exhibitor.count({ where: { event_id: eventId, status: 'rejected' } });
+    const active = await Exhibitor.count({ where: { event_id: eventId, status: 'active' } });
+    
+    return {
+        total,
+        pending,
+        approved,
+        rejected,
+        active,
+    };
 }
 
 // --- Offerings ---
@@ -251,6 +317,8 @@ module.exports = {
     getExhibitorById,
     updateExhibitor,
     deleteExhibitor,
+    updateExhibitorStatus,
+    getExhibitorStats,
     addOffering,
     assignStall,
     getStalls,

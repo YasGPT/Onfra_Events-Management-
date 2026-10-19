@@ -10,8 +10,22 @@ node_modules/
 dist/
 build/
 
+# Documentation & planning
 /README.md
+/AGENTS.md
+/IMPLEMENTATION_PLAN.md
+/REQUIREMENTS.md
+/Events Management - Plans (interns).docx
+*.docx
 /docs/architecture-baseline.md
+/docs/EXHIBITORS_MODULE_COMPLETE.md
+
+# Temporary scratch & test artifacts
+.scratch-e2e/
+.scratch-e2e/*
+.scratch-e2e/check.sql
+.scratch-e2e/cleanup-out.txt
+.qoder/
 
 # logs
 *.log

@@ -20,6 +20,7 @@ router.post(
 // --- Exhibitors ---
 router.get("/exhibitors", commercialController.listExhibitors);
 router.get("/exhibitors/:id", commercialController.getExhibitor);
+router.get("/exhibitors/stats", commercialController.getExhibitorStats);
 router.post(
     "/exhibitors",
     requireUserType("admin"),
@@ -29,6 +30,11 @@ router.put(
     "/exhibitors/:id",
     requireUserType("admin"),
     commercialController.updateExhibitor
+);
+router.patch(
+    "/exhibitors/:id/status",
+    requireUserType("admin"),
+    commercialController.updateExhibitorStatus
 );
 router.delete(
     "/exhibitors/:id",

@@ -131,7 +131,7 @@ export function LoginForm() {
       </label>
 
       <button className="submit-button" type="submit" disabled={loading}>
-        <span>{loading ? 'Verifying credentials…' : 'Sign in to workspace'}</span>
+        <span>{loading ? 'Verifying credentials…' : 'Sign in to Admin Portal'}</span>
         {!loading && <Icon name="arrow" />}
       </button>
 

@@ -66,6 +66,25 @@ async function deleteExhibitor(req, res, next) {
     }
 }
 
+async function updateExhibitorStatus(req, res, next) {
+    try {
+        const { status } = req.body;
+        const exhibitor = await commercialService.updateExhibitorStatus(req.params.id, status);
+        return sendResponse(res, 200, "Exhibitor status updated successfully", exhibitor);
+    } catch (error) {
+        next(error);
+    }
+}
+
+async function getExhibitorStats(req, res, next) {
+    try {
+        const stats = await commercialService.getExhibitorStats(req.eventId);
+        return sendResponse(res, 200, "Exhibitor statistics retrieved successfully", stats);
+    } catch (error) {
+        next(error);
+    }
+}
+
 // Offerings
 async function addOffering(req, res, next) {
     try {
@@ -168,6 +187,8 @@ module.exports = {
     getExhibitor,
     updateExhibitor,
     deleteExhibitor,
+    updateExhibitorStatus,
+    getExhibitorStats,
     addOffering,
     assignStall,
     listStalls,

@@ -21,7 +21,8 @@ async function listMyEvents(req, res, next) {
 
 async function getEventDetails(req, res, next) {
     try {
-        return sendResponse(res, 200, "Event details retrieved successfully", req.event);
+        const event = await eventService.getEventById(req.params.eventId, req.user.businessCode);
+        return sendResponse(res, 200, "Event details retrieved successfully", event);
     } catch (error) {
         next(error);
     }
@@ -36,6 +37,24 @@ async function updateEvent(req, res, next) {
     }
 }
 
+async function deleteEvent(req, res, next) {
+    try {
+        const result = await eventService.deleteEvent(req.params.eventId, req.user.businessCode);
+        return sendResponse(res, 200, "Event deleted successfully", result);
+    } catch (error) {
+        next(error);
+    }
+}
+
+async function bulkDeleteEvents(req, res, next) {
+    try {
+        const result = await eventService.bulkDeleteEvents(req.body.eventIds, req.user.businessCode);
+        return sendResponse(res, 200, "Selected events deleted successfully", result);
+    } catch (error) {
+        next(error);
+    }
+}
+
 async function uploadEventMedia(req, res, next) {
     try {
         const result = await eventService.uploadEventMedia(req.params.eventId, req.user.id, req.body);
@@ -45,10 +64,32 @@ async function uploadEventMedia(req, res, next) {
     }
 }
 
+async function getSettings(req, res, next) {
+    try {
+        const settings = await eventService.getEventSettings(req.params.eventId);
+        return sendResponse(res, 200, "Event settings retrieved successfully", settings);
+    } catch (error) {
+        next(error);
+    }
+}
+
+async function updateSettings(req, res, next) {
+    try {
+        const settings = await eventService.updateEventSettings(req.params.eventId, req.user.id, req.body);
+        return sendResponse(res, 200, "Event settings updated successfully", settings);
+    } catch (error) {
+        next(error);
+    }
+}
+
 module.exports = {
     createEvent,
     updateEvent,
+    deleteEvent,
+    bulkDeleteEvents,
     uploadEventMedia,
     listMyEvents,
     getEventDetails,
+    getSettings,
+    updateSettings,
 };

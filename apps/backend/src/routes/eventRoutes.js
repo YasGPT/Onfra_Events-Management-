@@ -17,8 +17,31 @@ router.post(
     eventController.createEvent
 );
 
-// Get Specific Event Details (Tenant context resolved)
-router.get("/:eventId", authenticate, resolveEventContext, eventController.getEventDetails);
+// Bulk Delete Events
+router.post(
+    "/bulk-delete",
+    authenticate,
+    requireUserType("admin"),
+    eventController.bulkDeleteEvents
+);
+
+// Get Specific Event Details
+router.get("/:eventId", authenticate, requireUserType("admin"), eventController.getEventDetails);
+
+// Event Settings (Feature toggles, registration rules, privacy, meeting rules)
+router.get(
+    "/:eventId/settings",
+    authenticate,
+    requireUserType("admin"),
+    eventController.getSettings
+);
+
+router.put(
+    "/:eventId/settings",
+    authenticate,
+    requireUserType("admin"),
+    eventController.updateSettings
+);
 
 // Update Specific Event
 router.patch(
@@ -26,6 +49,14 @@ router.patch(
     authenticate,
     requireUserType("admin"),
     eventController.updateEvent
+);
+
+// Delete Specific Event
+router.delete(
+    "/:eventId",
+    authenticate,
+    requireUserType("admin"),
+    eventController.deleteEvent
 );
 
 // Upload & Link Media Asset (Logo/Banner)

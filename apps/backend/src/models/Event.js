@@ -21,7 +21,6 @@ module.exports = (sequelize) => {
             business_code: {
                 type: DataTypes.STRING(80),
                 allowNull: false,
-                unique: true,
             },
             name: {
                 type: DataTypes.STRING(200),
@@ -108,7 +107,6 @@ module.exports = (sequelize) => {
             updatedAt: "updated_at",
             indexes: [
                 {
-                    unique: true,
                     fields: ["business_code"],
                 },
             ],

@@ -27,7 +27,7 @@ export function LoginPage() {
             <Brand variant="dark" />
 
             <div className="login-heading">
-              <span className="login-heading__badge">Admin workspace</span>
+              <span className="login-heading__badge">Admin Portal</span>
               <h2>Welcome back</h2>
               <p>Sign in to manage your events and organization.</p>
             </div>

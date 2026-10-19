@@ -1,7 +1,7 @@
 const AppError = require("../utils/AppError");
 
 function validateAdminLogin(req, res, next) {
-    const { business_code, email, password } = req.body;
+    const { business_code, email, password } = req.body || {};
 
     if (!business_code || typeof business_code !== "string" || !business_code.trim()) {
         return next(new AppError("Business code is required for admin login.", 400));
@@ -20,18 +20,33 @@ function validateAdminLogin(req, res, next) {
     next();
 }
 
+/** Attendee login accepts either an email address or a mobile number. */
 function validateAttendeeLogin(req, res, next) {
-    const { email, password } = req.body;
+    const body = req.body || {};
+    const identifier = body.identifier || body.email || body.phone;
 
-    if (!email || typeof email !== "string" || !email.trim()) {
-        return next(new AppError("Email is required for attendee login.", 400));
+    if (!identifier || typeof identifier !== "string" || !identifier.trim()) {
+        return next(new AppError("Email address or mobile number is required.", 400));
     }
 
-    if (!password || typeof password !== "string" || !password.trim()) {
+    if (!body.password || typeof body.password !== "string" || !body.password.trim()) {
         return next(new AppError("Password is required.", 400));
     }
 
-    req.body.email = email.trim().toLowerCase();
+    req.body.identifier = identifier.trim();
+    next();
+}
+
+/** Attendee "forgot password" accepts the same identifier field. */
+function validateAttendeeForgotPassword(req, res, next) {
+    const body = req.body || {};
+    const identifier = body.identifier || body.email || body.phone;
+
+    if (!identifier || typeof identifier !== "string" || !identifier.trim()) {
+        return next(new AppError("Email address or mobile number is required.", 400));
+    }
+
+    req.body.identifier = identifier.trim();
     next();
 }
 
@@ -58,5 +73,6 @@ function validateCreateAdmin(req, res, next) {
 module.exports = {
     validateAdminLogin,
     validateAttendeeLogin,
+    validateAttendeeForgotPassword,
     validateCreateAdmin,
 };

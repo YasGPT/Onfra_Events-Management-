@@ -24,7 +24,7 @@ export function DashboardPage() {
   return (
     <section className="dashboard">
       <div className="dashboard__intro">
-        <span className="dashboard__eyebrow">Workspace</span>
+        <span className="dashboard__eyebrow">Admin Dashboard</span>
         <h1>Welcome back, {firstName}</h1>
         <p>
           This admin frontend is talking to the shared Confra API. The session, connection status

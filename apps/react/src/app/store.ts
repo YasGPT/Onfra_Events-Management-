@@ -3,6 +3,7 @@ import authReducer from '../features/auth/authSlice';
 import eventsReducer from '../features/events/eventsSlice';
 import activeEventReducer from '../features/events/activeEventSlice';
 import attendeesReducer from '../features/attendees/attendeesSlice';
+import exhibitorsReducer from '../features/exhibitors/exhibitorsSlice';
 
 export const store = configureStore({
   reducer: {
@@ -10,6 +11,7 @@ export const store = configureStore({
     events: eventsReducer,
     activeEvent: activeEventReducer,
     attendees: attendeesReducer,
+    exhibitors: exhibitorsReducer as any,
   },
 });
 

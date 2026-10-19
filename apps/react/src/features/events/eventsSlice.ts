@@ -2,13 +2,12 @@ import { createSlice } from '@reduxjs/toolkit';
 import type { PayloadAction } from '@reduxjs/toolkit';
 
 import type { EventSummary } from '../../types';
-import { createEvent, fetchEvents } from './eventsThunks';
+import { bulkDeleteEvents, createEvent, deleteEvent, fetchEvents, updateEvent } from './eventsThunks';
 
 export interface EventsState {
   list: EventSummary[];
   loading: boolean;
   error: string | null;
-  /** Separate flags for the "Create event" dialog. */
   saving: boolean;
   saveError: string | null;
   loadedAt: string | null;
@@ -36,7 +35,6 @@ export const eventsSlice = createSlice({
   name: 'events',
   initialState,
   reducers: {
-    /** Wipes cached events (used on sign-out so the next admin sees nothing stale). */
     resetEvents: (state) => {
       state.list = [];
       state.loading = false;
@@ -55,6 +53,7 @@ export const eventsSlice = createSlice({
   },
   extraReducers: (builder) => {
     builder
+      // Fetch
       .addCase(fetchEvents.pending, (state) => {
         state.loading = true;
         state.error = null;
@@ -68,6 +67,7 @@ export const eventsSlice = createSlice({
         state.loading = false;
         state.error = action.payload ?? 'Unable to load events.';
       })
+      // Create
       .addCase(createEvent.pending, (state) => {
         state.saving = true;
         state.saveError = null;
@@ -79,6 +79,28 @@ export const eventsSlice = createSlice({
       .addCase(createEvent.rejected, (state, action) => {
         state.saving = false;
         state.saveError = action.payload ?? 'Unable to create the event.';
+      })
+      // Update
+      .addCase(updateEvent.pending, (state) => {
+        state.saving = true;
+        state.saveError = null;
+      })
+      .addCase(updateEvent.fulfilled, (state, action) => {
+        state.saving = false;
+        mergeEvent(state, action.payload);
+      })
+      .addCase(updateEvent.rejected, (state, action) => {
+        state.saving = false;
+        state.saveError = action.payload ?? 'Unable to update the event.';
+      })
+      // Delete
+      .addCase(deleteEvent.fulfilled, (state, action) => {
+        state.list = state.list.filter((item) => item.id !== action.payload);
+      })
+      // Bulk Delete
+      .addCase(bulkDeleteEvents.fulfilled, (state, action) => {
+        const deletedSet = new Set(action.payload);
+        state.list = state.list.filter((item) => !deletedSet.has(item.id));
       });
   },
 });

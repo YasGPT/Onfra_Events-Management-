@@ -1,5 +1,7 @@
+const { Op } = require("sequelize");
 const {
     Event,
+    EventSetting,
     SponsorshipTier,
     EventDay,
     Venue,
@@ -25,6 +27,7 @@ async function createEvent(adminId, businessCode, data) {
         banner_data,
         logo_asset_id,
         banner_asset_id,
+        status,
     } = data;
 
     if (!name || !name.trim()) {
@@ -43,6 +46,11 @@ async function createEvent(adminId, businessCode, data) {
         throw new AppError("End date/time must be after start date/time.", 400);
     }
 
+    // Default to 'published' unless explicitly requested as 'draft'
+    const isDraft = status === "draft";
+    const eventStatus = isDraft ? "draft" : "published";
+    const publishedAt = isDraft ? null : new Date();
+
     // 1. Create Event row first (business_code from admin session, not from form)
     const event = await Event.create({
         created_by_admin_id: adminId,
@@ -59,7 +67,8 @@ async function createEvent(adminId, businessCode, data) {
         organizer_phone: organizer_phone ? organizer_phone.trim() : null,
         meeting_request_expiry_hours: parseInt(meeting_request_expiry_hours, 10) || 24,
         allow_personal_photo_uploads: Boolean(allow_personal_photo_uploads),
-        status: "draft",
+        status: eventStatus,
+        published_at: publishedAt,
         is_active: true,
     });
 
@@ -206,11 +215,42 @@ async function updateEvent(eventId, businessCode, data) {
     }
     if (logo_asset_id !== undefined) event.logo_asset_id = logo_asset_id;
     if (banner_asset_id !== undefined) event.banner_asset_id = banner_asset_id;
-    if (status !== undefined) event.status = status;
+    if (status !== undefined) {
+        event.status = status;
+        if (status === "published" && !event.published_at) {
+            event.published_at = new Date();
+        } else if (status === "draft") {
+            event.published_at = null;
+        }
+    }
     if (is_active !== undefined) event.is_active = is_active;
 
     await event.save();
     return event;
+}
+
+async function deleteEvent(eventId, businessCode) {
+    const event = await Event.findOne({
+        where: { id: eventId, business_code: businessCode },
+    });
+    if (!event) {
+        throw new AppError("Event not found or access denied.", 404);
+    }
+    await event.destroy();
+    return { success: true, message: "Event deleted successfully." };
+}
+
+async function bulkDeleteEvents(eventIds, businessCode) {
+    if (!Array.isArray(eventIds) || eventIds.length === 0) {
+        throw new AppError("Please provide an array of event IDs to delete.", 400);
+    }
+    const count = await Event.destroy({
+        where: {
+            id: { [Op.in]: eventIds },
+            business_code: businessCode,
+        },
+    });
+    return { success: true, count, message: `${count} event(s) deleted successfully.` };
 }
 
 async function uploadEventMedia(eventId, adminId, mediaData) {
@@ -245,18 +285,113 @@ async function getAdminEvents(adminId, role, businessCode) {
     });
 }
 
-async function getEventById(eventId) {
-    const event = await Event.findByPk(eventId);
+async function getEventById(eventId, businessCode) {
+    const where = { id: eventId };
+    if (businessCode) {
+        where.business_code = businessCode;
+    }
+    const event = await Event.findOne({
+        where,
+        include: [
+            { model: EventDay },
+            { model: Venue },
+        ],
+    });
     if (!event) {
         throw new AppError("Event not found.", 404);
     }
     return event;
 }
 
+const DEFAULT_EVENT_SETTINGS = {
+    features: {
+        networking: true,
+        meetings: true,
+        chat: true,
+        gallery: true,
+        exhibitors: true,
+        sponsors: true,
+    },
+    registration: {
+        require_admin_approval: true,
+        allow_public_registration: true,
+    },
+    privacy: {
+        directory_visible_default: true,
+        allow_contact_sharing: true,
+    },
+    meeting_rules: {
+        max_duration_minutes: 30,
+        buffer_minutes: 10,
+    },
+};
+
+async function getEventSettings(eventId) {
+    const records = await EventSetting.findAll({
+        where: { event_id: eventId },
+    });
+
+    const settings = JSON.parse(JSON.stringify(DEFAULT_EVENT_SETTINGS));
+
+    records.forEach((rec) => {
+        if (rec.setting_key && rec.setting_value) {
+            settings[rec.setting_key] = {
+                ...(settings[rec.setting_key] || {}),
+                ...rec.setting_value,
+            };
+        }
+    });
+
+    return settings;
+}
+
+async function updateEventSettings(eventId, adminId, settingsPayload) {
+    if (!settingsPayload || typeof settingsPayload !== "object") {
+        throw new AppError("Settings payload must be an object.", 400);
+    }
+
+    const validKeys = ["features", "registration", "privacy", "meeting_rules"];
+    const results = {};
+
+    for (const key of validKeys) {
+        if (settingsPayload[key] !== undefined) {
+            const existing = await EventSetting.findOne({
+                where: { event_id: eventId, setting_key: key },
+            });
+
+            if (existing) {
+                existing.setting_value = {
+                    ...(existing.setting_value || {}),
+                    ...settingsPayload[key],
+                };
+                existing.updated_by_admin_id = adminId;
+                existing.updated_at = new Date();
+                await existing.save();
+                results[key] = existing.setting_value;
+            } else {
+                const created = await EventSetting.create({
+                    event_id: eventId,
+                    setting_key: key,
+                    setting_value: settingsPayload[key],
+                    updated_by_admin_id: adminId,
+                    updated_at: new Date(),
+                });
+                results[key] = created.setting_value;
+            }
+        }
+    }
+
+    return getEventSettings(eventId);
+}
+
 module.exports = {
     createEvent,
     updateEvent,
+    deleteEvent,
+    bulkDeleteEvents,
     uploadEventMedia,
     getAdminEvents,
     getEventById,
+    getEventSettings,
+    updateEventSettings,
 };

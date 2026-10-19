@@ -18,7 +18,7 @@ export function LoginShowcase() {
         <span className="eyebrow"><span /> Built for remarkable events</span>
         <h1>Everything your event needs. <em>One powerful place.</em></h1>
         <p>
-          Bring your team, attendees, and event operations together with a workspace
+          Bring your team, attendees, and event operations together with a platform
           designed for effortless execution.
         </p>
 

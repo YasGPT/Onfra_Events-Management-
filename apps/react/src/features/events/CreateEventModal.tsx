@@ -25,7 +25,6 @@ type FormValues = {
   organizerName: string;
   organizerEmail: string;
   organizerPhone: string;
-  meetingRequestExpiryHours: string;
   allowPersonalPhotoUploads: boolean;
   logoData: MediaUploadPayload | null;
   bannerData: MediaUploadPayload | null;
@@ -42,7 +41,6 @@ const emptyForm: FormValues = {
   organizerName: '',
   organizerEmail: '',
   organizerPhone: '',
-  meetingRequestExpiryHours: '24',
   allowPersonalPhotoUploads: false,
   logoData: null,
   bannerData: null,
@@ -113,10 +111,6 @@ export function CreateEventModal({ open, onClose, onCreated }: CreateEventModalP
     if (values.organizerEmail && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(values.organizerEmail)) {
       nextErrors.organizerEmail = 'Enter a valid organizer email.';
     }
-    const expiryHours = parseInt(values.meetingRequestExpiryHours, 10);
-    if (isNaN(expiryHours) || expiryHours < 1 || expiryHours > 168) {
-      nextErrors.meetingRequestExpiryHours = 'Enter a value between 1 and 168 hours.';
-    }
 
     setErrors(nextErrors);
     return Object.keys(nextErrors).length === 0;
@@ -133,7 +127,7 @@ export function CreateEventModal({ open, onClose, onCreated }: CreateEventModalP
     organizer_name: values.organizerName,
     organizer_email: values.organizerEmail,
     organizer_phone: values.organizerPhone,
-    meeting_request_expiry_hours: parseInt(values.meetingRequestExpiryHours, 10),
+    meeting_request_expiry_hours: 24, // Standard system default
     allow_personal_photo_uploads: values.allowPersonalPhotoUploads,
     logo_data: values.logoData || undefined,
     banner_data: values.bannerData || undefined,
@@ -164,8 +158,8 @@ export function CreateEventModal({ open, onClose, onCreated }: CreateEventModalP
 
   return (
     <Modal
-      title="Create event"
-      subtitle="Configure your event across all 4 sections. Business code and workspace will be assigned automatically."
+      title="Create Event"
+      subtitle="Enter the event details to create and publish your event."
       open={open}
       onClose={close}
       error={saveError}
@@ -175,17 +169,17 @@ export function CreateEventModal({ open, onClose, onCreated }: CreateEventModalP
             Cancel
           </button>
           <button className="ghost-button" type="button" onClick={handleSaveDraft} disabled={saving}>
-            {saving ? 'Saving Draft…' : 'Save Draft'}
+            {saving ? 'Saving…' : 'Save Draft'}
           </button>
           <button className="ghost-button ghost-button--primary" type="submit" form="create-event-form" disabled={saving}>
-            {saving ? 'Creating…' : 'Create Event & Continue'}
+            {saving ? 'Creating…' : 'Create Event'}
           </button>
         </>
       )}
     >
       <form id="create-event-form" onSubmit={handleSubmit} noValidate>
-        {/* Section A: Basic Event Details */}
-        <div className="section-label">Section A — Basic Event Details (Event Details)</div>
+        {/* Event Details */}
+        <div className="section-label">Event Details</div>
         <div className="modal__grid">
           <TextField
             id="event-name"
@@ -201,7 +195,7 @@ export function CreateEventModal({ open, onClose, onCreated }: CreateEventModalP
             id="event-description"
             label="Event Description"
             rows={3}
-            placeholder="Event pathi short description..."
+            placeholder="Short description about the event..."
             value={values.description}
             onChange={(e) => update('description', e.target.value)}
             full
@@ -211,7 +205,7 @@ export function CreateEventModal({ open, onClose, onCreated }: CreateEventModalP
             <ImageUploadField
               id="modal-logo-upload"
               label="Event Logo"
-              sublabel="Square 1:1"
+              sublabel="Square · 1:1"
               variant="logo"
               value={values.logoData}
               onChange={(payload) => update('logoData', payload)}
@@ -223,7 +217,7 @@ export function CreateEventModal({ open, onClose, onCreated }: CreateEventModalP
             <ImageUploadField
               id="modal-banner-upload"
               label="Event Banner"
-              sublabel="Wide 3:1"
+              sublabel="Wide · 3:1"
               variant="banner"
               value={values.bannerData}
               onChange={(payload) => update('bannerData', payload)}
@@ -232,8 +226,8 @@ export function CreateEventModal({ open, onClose, onCreated }: CreateEventModalP
           </div>
         </div>
 
-        {/* Section B: Event Date & Time */}
-        <div className="section-label" style={{ marginTop: '14px' }}>Section B — Event Date & Time (Schedule)</div>
+        {/* Schedule */}
+        <div className="section-label" style={{ marginTop: '16px' }}>Schedule</div>
         <div className="modal__grid">
           <TextField
             id="event-starts-at"
@@ -267,15 +261,15 @@ export function CreateEventModal({ open, onClose, onCreated }: CreateEventModalP
               <Icon name="calendar" />
               <span>
                 {daySchedule.isMultiDay
-                  ? `Multi-day event detected: ${daySchedule.count} days will be created in event_days table (Day 1 - Day ${daySchedule.count}).`
-                  : 'Single-day event: 1 record will be created in event_days table.'}
+                  ? `${daySchedule.count} event days detected. Records will be created in event_days automatically.`
+                  : 'Single-day event.'}
               </span>
             </div>
           )}
         </div>
 
-        {/* Section C: Main Venue */}
-        <div className="section-label" style={{ marginTop: '14px' }}>Section C — Main Venue (Event Venue)</div>
+        {/* Event Venue */}
+        <div className="section-label" style={{ marginTop: '16px' }}>Event Venue</div>
         <div className="modal__grid">
           <TextField
             id="event-venue-name"
@@ -298,13 +292,13 @@ export function CreateEventModal({ open, onClose, onCreated }: CreateEventModalP
           />
         </div>
 
-        {/* Section D: Organizer & Event Settings */}
-        <div className="section-label" style={{ marginTop: '14px' }}>Section D — Organizer & Event Settings (Features)</div>
+        {/* Organizer & Settings */}
+        <div className="section-label" style={{ marginTop: '16px' }}>Organizer & Settings</div>
         <div className="modal__grid">
           <TextField
             id="event-organizer-name"
             label="Organizer Name"
-            placeholder="Organization / contact person"
+            placeholder="Organization or contact person"
             value={values.organizerName}
             onChange={(e) => update('organizerName', e.target.value)}
           />
@@ -327,17 +321,6 @@ export function CreateEventModal({ open, onClose, onCreated }: CreateEventModalP
             onChange={(e) => update('organizerPhone', e.target.value)}
           />
 
-          <TextField
-            id="meeting-request-expiry"
-            label="Meeting Request Expiry (Hours) *"
-            type="number"
-            placeholder="24"
-            value={values.meetingRequestExpiryHours}
-            onChange={(e) => update('meetingRequestExpiryHours', e.target.value)}
-            error={errors.meetingRequestExpiryHours}
-            hint="Suggested default: 24 hours. Admin can change it."
-          />
-
           <div className="field--full">
             <label style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer' }}>
               <input
@@ -348,7 +331,7 @@ export function CreateEventModal({ open, onClose, onCreated }: CreateEventModalP
               />
               <span style={{ fontSize: '13px', fontWeight: 600 }}>Allow Attendees to Upload Profile Photos</span>
             </label>
-            <small className="field-hint">Controls the attendee photo upload option</small>
+            <small className="field-hint">Controls the attendee photo upload option in the app</small>
           </div>
         </div>
       </form>

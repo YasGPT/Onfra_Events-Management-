@@ -19,7 +19,22 @@ export type IconName =
   | 'search'
   | 'plus'
   | 'pin'
-  | 'trash';
+  | 'trash'
+  | 'handshake'
+  | 'store'
+  | 'user'
+  | 'edit'
+  | 'qr'
+  | 'badge'
+  | 'printer'
+  | 'download'
+  | 'shield'
+  | 'history'
+  | 'check-circle'
+  | 'x-circle'
+  | 'filter'
+  | 'send'
+  | 'key';
 
 export interface IconProps {
   name: IconName;
@@ -141,6 +156,99 @@ const iconPaths: Record<IconName, ReactNode> = {
       <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2" />
       <line x1="10" y1="11" x2="10" y2="17" />
       <line x1="14" y1="11" x2="14" y2="17" />
+    </>
+  ),
+  handshake: (
+    <>
+      <path d="m11 17 2 2a1 1 0 0 0 1.4 0l4.3-4.3a1 1 0 0 0 0-1.4l-3-3" />
+      <path d="m14 14 2.5 2.5a1 1 0 0 0 1.4 0l2.1-2.1a1 1 0 0 0 0-1.4L15 8" />
+      <path d="M2 13 8 7a2 2 0 0 1 2.8 0l1.2 1.2" />
+      <path d="m5 16 3-3" />
+      <path d="m18 10 4 4" />
+    </>
+  ),
+  store: (
+    <>
+      <path d="m2 7 4.41-4.41A2 2 0 0 1 7.83 2h8.34a2 2 0 0 1 1.42.59L22 7" />
+      <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8" />
+      <path d="M15 22v-4a2 2 0 0 0-2-2h-2a2 2 0 0 0-2 2v4" />
+      <path d="M2 7h20" />
+    </>
+  ),
+  user: (
+    <>
+      <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" />
+      <circle cx="12" cy="7" r="4" />
+    </>
+  ),
+  edit: (
+    <>
+      <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+      <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+    </>
+  ),
+  qr: (
+    <>
+      <rect x="3" y="3" width="7" height="7" rx="1" />
+      <rect x="14" y="3" width="7" height="7" rx="1" />
+      <rect x="3" y="14" width="7" height="7" rx="1" />
+      <path d="M14 14h3v3h-3zM20 14v3h-3M14 20h7M7 7h.01M17 7h.01M7 17h.01" />
+    </>
+  ),
+  badge: (
+    <>
+      <rect x="3" y="4" width="18" height="16" rx="2" />
+      <path d="M9 2v4M15 2v4M3 10h18M8 15h2M14 15h2" />
+    </>
+  ),
+  printer: (
+    <>
+      <path d="M6 9V2h12v7M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2" />
+      <rect x="6" y="14" width="12" height="8" rx="1" />
+    </>
+  ),
+  download: (
+    <>
+      <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3" />
+    </>
+  ),
+  shield: (
+    <>
+      <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+    </>
+  ),
+  history: (
+    <>
+      <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
+      <path d="M3 3v5h5M12 7v5l4 2" />
+    </>
+  ),
+  'check-circle': (
+    <>
+      <circle cx="12" cy="12" r="9" />
+      <path d="m9 12 2 2 4-4" />
+    </>
+  ),
+  'x-circle': (
+    <>
+      <circle cx="12" cy="12" r="9" />
+      <path d="m15 9-6 6M9 9l6 6" />
+    </>
+  ),
+  filter: (
+    <>
+      <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3" />
+    </>
+  ),
+  send: (
+    <>
+      <line x1="22" y1="2" x2="11" y2="13" />
+      <polygon points="22 2 15 22 11 13 2 9 22 2" />
+    </>
+  ),
+  key: (
+    <>
+      <path d="m15.5 8.5 2 2M13.5 10.5l2 2M21 2l-9.6 9.6M7.5 16.5A5.5 5.5 0 1 1 2 11a5.5 5.5 0 0 1 5.5 5.5Z" />
     </>
   ),
 };
