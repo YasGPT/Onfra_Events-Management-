@@ -14,6 +14,12 @@ app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+// Sanitize URL whitespace/newlines from copy-paste
+app.use((req, res, next) => {
+    req.url = req.url.trim().replace(/[\r\n]|%0A|%0D/gi, "");
+    next();
+});
+
 // Root Welcome & Health Check
 app.get("/", (req, res) => {
     res.json({
