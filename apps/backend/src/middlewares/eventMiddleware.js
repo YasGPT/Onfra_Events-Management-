@@ -20,12 +20,13 @@ async function resolveEventContext(req, res, next) {
             }
         } else {
             // If Admin, get from route params or custom header
-            eventId = req.params.eventId || req.headers["x-event-id"];
-            if (!eventId) {
+            let rawEventId = req.params.eventId || req.headers["x-event-id"];
+            if (!rawEventId) {
                 return next(
                     new AppError("Event identifier is required (:eventId in params or X-Event-ID header).", 400)
                 );
             }
+            eventId = typeof rawEventId === "string" ? rawEventId.replace(/[<>]/g, "").trim() : rawEventId;
 
             // Verify admin has access to this event (unless Super Admin)
             if (req.user.role !== "Super Admin") {

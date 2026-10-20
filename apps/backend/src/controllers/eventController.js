@@ -27,8 +27,41 @@ async function getEventDetails(req, res, next) {
     }
 }
 
+async function updateEvent(req, res, next) {
+    try {
+        const eventId = req.eventId || req.params.eventId;
+        const result = await eventService.updateEvent(req.user.id, eventId, req.body);
+        return sendResponse(res, 200, "Event updated successfully", result);
+    } catch (error) {
+        next(error);
+    }
+}
+
+async function getSettings(req, res, next) {
+    try {
+        const eventId = req.eventId || req.params.eventId;
+        const result = await eventService.getEventSettings(eventId);
+        return sendResponse(res, 200, "Event settings retrieved successfully", result);
+    } catch (error) {
+        next(error);
+    }
+}
+
+async function updateSettings(req, res, next) {
+    try {
+        const eventId = req.eventId || req.params.eventId;
+        const result = await eventService.updateEventSettings(req.user.id, eventId, req.body);
+        return sendResponse(res, 200, "Event settings updated successfully", result);
+    } catch (error) {
+        next(error);
+    }
+}
+
 module.exports = {
     createEvent,
     listMyEvents,
     getEventDetails,
+    updateEvent,
+    getSettings,
+    updateSettings,
 };

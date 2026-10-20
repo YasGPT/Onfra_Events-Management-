@@ -22,3 +22,20 @@ Thumbs.db
 
 # backup of inner git repo (safe to delete after outer repo verified)
 .git_backup/
+
+# Repomix files
+repomix-output.xml
+repomix*
+.repomix/
+
+# Readme files
+README.md
+**/README.md
+
+# Package lock files
+package-lock.json
+**/package-lock.json
+
+# Scratch and test files
+scratch/
+**/scratch/
